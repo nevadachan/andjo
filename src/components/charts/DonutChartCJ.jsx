@@ -16,6 +16,9 @@ export default function DonutChartCJ({ data, total }) {
     if (!canvas) return
     const ctx = canvas.getContext('2d')
 
+    /* Get the REAL device pixel ratio for crisp rendering */
+    const dpr = Math.max(window.devicePixelRatio || 1, 2)
+
     const percentLabelPlugin = {
       id: 'outerPercentLabels',
       afterDatasetsDraw(chart) {
@@ -89,12 +92,14 @@ export default function DonutChartCJ({ data, total }) {
         rotation: -90,
         responsive: true,
         maintainAspectRatio: true,
+        /* ═══ KEY FIX: force high-res rendering ═══ */
+        devicePixelRatio: dpr,
         layout: {
           padding: {
-            top: 22,
-            bottom: 22,
-            left: 44,
-            right: 44,
+            top: 26,
+            bottom: 26,
+            left: 50,
+            right: 50,
           },
         },
         animation: { duration: 500, easing: 'easeOutQuart' },
