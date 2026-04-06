@@ -24,7 +24,7 @@ export default function ScaleRoot({ children }) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: '#f6f1f5',
+      background: '#000',  // ← было '#f6f1f5'
       overflow: 'hidden',
     }}>
       <div style={{
