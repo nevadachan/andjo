@@ -370,17 +370,18 @@ export default function CostDriversPage({ onBack }) {
         display: 'flex', alignItems: 'center', gap: 14,
         flexShrink: 0, marginBottom: 6,
       }}>
-        <div
-          onClick={onBack}
+      <button
+          onClick={e => { e.stopPropagation(); onBack() }}
           style={{
-            width: 26, height: 26, borderRadius: '50%', background: '#ea529b',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', fontSize: 12, cursor: 'pointer', flexShrink: 0,
-            transition: 'transform .2s', zIndex: 50,
+           width: 30, height: 30, borderRadius: 15, border: 'none',
+           background: '#F8D7E0', cursor: 'pointer', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}
-          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.15)'}
-          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-        >{'\u2190'}</div>
+         >
+  <svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+    <path d="M9 2L4 7L9 12" stroke="#bf3580" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+</button>
         <div style={{
           color: '#000', fontSize: 17, fontWeight: 700,
           textTransform: 'uppercase', letterSpacing: '-.02em',
