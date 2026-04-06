@@ -30,24 +30,21 @@ export default function ParetoChart({ labels, costData, cumulativeData }) {
         chart.data.datasets.forEach((ds, di) => {
           const meta = chart.getDatasetMeta(di)
           if (meta.hidden) return
+          if (di === 2) return
           meta.data.forEach((el, i) => {
             const val = ds.data[i]
             if (val == null) return
             c.save()
             c.font = 'bold 9px Pragmatica, Inter, sans-serif'
+            c.fillStyle = '#000'
             c.textAlign = 'center'
             if (di === 0) {
-              // ── бар: чёрный цвет, отступ 6px над баром ──
-              c.fillStyle = '#000'
               c.textBaseline = 'bottom'
               c.fillText(val.toFixed(2), el.x, el.y - 6)
-            } else if (di === 1) {
-              // ── линия накопленной доли: розовый, правее точки ──
-              c.fillStyle = '#bf3580'
+            } else {
               c.textBaseline = 'middle'
               c.fillText(val.toFixed(1) + '%', el.x + 14, el.y)
             }
-            // di === 2 — пороговая линия, подписи не нужны
             c.restore()
           })
         })
@@ -100,7 +97,6 @@ export default function ParetoChart({ labels, costData, cumulativeData }) {
         maintainAspectRatio: false,
         devicePixelRatio: dpr,
         layout: {
-          // ── отступ сверху чтобы цифры над барами не обрезались ──
           padding: { top: 18 },
         },
         plugins: {
