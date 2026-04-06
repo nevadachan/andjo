@@ -1,44 +1,86 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useCallback } from 'react'
 import Chart from 'chart.js/auto'
 
 export default function DonutChartCJ({ data, total }) {
+  const containerRef = useRef(null)
   const canvasRef = useRef(null)
   const chartRef = useRef(null)
 
-  useEffect(() => {
+  const buildChart = useCallback(() => {
     if (chartRef.current) {
       chartRef.current.destroy()
       chartRef.current = null
     }
 
-    const ctx = canvasRef.current.getContext('2d')
+    const canvas = canvasRef.current
+    if (!canvas) return
 
-    /* ── Percent labels around slices ── */
+    const ctx = canvas.getContext('2d')
+
+    /* ═══════════════════════════════════════════════════════════════
+       Custom plugin: percent labels OUTSIDE the donut ring
+       ═══════════════════════════════════════════════════════════════ */
     const percentLabelPlugin = {
-      id: 'percentLabels',
+      id: 'outerPercentLabels',
       afterDatasetsDraw(chart) {
-        const { ctx: c, width, height } = chart
+        const { ctx: c } = chart
         const meta = chart.getDatasetMeta(0)
-        const centerX = width / 2
-        const centerY = height / 2
-        /* outer radius from the arc element */
-        const outerR = meta.data[0]?.outerRadius || Math.min(width, height) / 2
+        if (!meta.data.length) return
 
-        meta.data.forEach((el, i) => {
-          const pct = data[i].value.toFixed(2).replace('.', ',')
-          const midAngle = (el.startAngle + el.endAngle) / 2
+        const firstArc = meta.data[0]
+        const cx = firstArc.x
+        const cy = firstArc.y
+        const outerR = firstArc.outerRadius
 
-          /* Position labels outside the donut */
-          const labelR = outerR + 14
-          const x = centerX + Math.cos(midAngle) * labelR
-          const y = centerY + Math.sin(midAngle) * labelR
+        meta.data.forEach((arc, i) => {
+          if (!data[i]) return
+
+          const midAngle = (arc.startAngle + arc.endAngle) / 2
+          const color = data[i].color || '#333'
+
+          // Format: "37,96" + "%"
+          const pctNum = data[i].value.toFixed(2).replace('.', ',')
+
+          // Distance from center to label anchor
+          const gap = 12
+          const labelR = outerR + gap
+
+          const lx = cx + Math.cos(midAngle) * labelR
+          const ly = cy + Math.sin(midAngle) * labelR
+
+          // Determine alignment based on angle quadrant
+          const cosA = Math.cos(midAngle)
+          let align = 'center'
+          let offsetX = 0
+          if (cosA < -0.2) { align = 'right'; offsetX = 2 }
+          else if (cosA > 0.2) { align = 'left'; offsetX = -2 }
 
           c.save()
-          c.font = 'bold 11px Pragmatica, sans-serif'
-          c.fillStyle = data[i].color
-          c.textAlign = 'center'
           c.textBaseline = 'middle'
-          c.fillText(pct + '%', x, y)
+
+          // Measure the number part width
+          c.font = 'bold 13px Pragmatica, Inter, system-ui, sans-serif'
+          const numW = c.measureText(pctNum).width
+          c.font = 'bold 9px Pragmatica, Inter, system-ui, sans-serif'
+          const pctW = c.measureText('%').width
+          const totalW = numW + pctW
+
+          // Calculate start X based on alignment
+          let startX
+          if (align === 'left') startX = lx + offsetX
+          else if (align === 'right') startX = lx + offsetX - totalW
+          else startX = lx - totalW / 2
+
+          // Draw number
+          c.font = 'bold 13px Pragmatica, Inter, system-ui, sans-serif'
+          c.fillStyle = color
+          c.textAlign = 'left'
+          c.fillText(pctNum, startX, ly)
+
+          // Draw "%" right after number, smaller
+          c.font = 'bold 9px Pragmatica, Inter, system-ui, sans-serif'
+          c.fillText('%', startX + numW, ly)
+
           c.restore()
         })
       },
@@ -52,63 +94,106 @@ export default function DonutChartCJ({ data, total }) {
           data: data.map(d => d.value),
           backgroundColor: data.map(d => d.color),
           borderColor: '#ffffff',
-          borderWidth: 2,
+          borderWidth: 3,
           hoverOffset: 4,
+          borderRadius: 6,
+          spacing: 2,
         }],
       },
       options: {
-        cutout: '62%',
+        cutout: '64%',
+        rotation: -90,           // start from 12 o'clock
         responsive: true,
         maintainAspectRatio: true,
         layout: {
-          padding: 24, /* space for percent labels outside the donut */
+          padding: {
+            top: 22,
+            bottom: 22,
+            left: 44,
+            right: 44,
+          },
         },
-        animation: { duration: 400 },
+        animation: { duration: 500, easing: 'easeOutQuart' },
         plugins: {
           legend: { display: false },
-          tooltip: { enabled: true },
+          tooltip: {
+            enabled: true,
+            backgroundColor: 'rgba(0,0,0,0.8)',
+            titleFont: { family: 'Pragmatica, sans-serif', size: 11 },
+            bodyFont: { family: 'Pragmatica, sans-serif', size: 10 },
+            padding: 8,
+            cornerRadius: 6,
+          },
         },
       },
       plugins: [percentLabelPlugin],
     })
+  }, [data])
 
+  useEffect(() => {
+    buildChart()
     return () => {
       if (chartRef.current) {
         chartRef.current.destroy()
         chartRef.current = null
       }
     }
-  }, [data, total])
+  }, [buildChart, total])
 
-  return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <canvas ref={canvasRef} />
+  /* ════════════════════════════════════════���══════════════════════
+     Center label: "52,00 млн руб"
+     Figma: 52 = fontSize 40 bold, ,00 = fontSize 20 bold,
+            млн руб = fontSize 20 regular
+     ═══════════════════════════════════════════════════════════════ */
+  const renderCenter = () => {
+    if (!total) return null
+    const parts = total.split(',')
+    const intPart = parts[0]
+    const decPart = parts[1] ?? '00'
 
-      {/* Center label — "52,00 млн руб" */}
+    return (
       <div style={{
         position: 'absolute',
         top: 0, left: 0, right: 0, bottom: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
         pointerEvents: 'none',
       }}>
-        {total && (() => {
-          const parts = total.split(',')
-          return (
-            <>
-              <div style={{ lineHeight: 1, textAlign: 'center' }}>
-                <span style={{ color: '#000', fontSize: 32, fontWeight: 700 }}>{parts[0]}</span>
-                {parts[1] != null && (
-                  <span style={{ color: '#000', fontSize: 16, fontWeight: 700 }}>,{parts[1]}</span>
-                )}
-              </div>
-              <div style={{ color: '#000', fontSize: 14, marginTop: 2 }}>млн руб</div>
-            </>
-          )
-        })()}
+        <div style={{ lineHeight: 1, textAlign: 'center', whiteSpace: 'nowrap' }}>
+          <span style={{
+            color: '#000', fontSize: 38, fontWeight: 700,
+            fontFamily: 'Pragmatica, sans-serif',
+            letterSpacing: '-0.02em',
+          }}>
+            {intPart}
+          </span>
+          <span style={{
+            color: '#000', fontSize: 18, fontWeight: 700,
+            fontFamily: 'Pragmatica, sans-serif',
+          }}>
+            ,{decPart}
+          </span>
+        </div>
+        <div style={{
+          color: '#000', fontSize: 16,
+          fontFamily: 'Pragmatica, sans-serif',
+          fontWeight: 400,
+          marginTop: 1,
+          letterSpacing: '0.02em',
+        }}>
+          млн руб
+        </div>
       </div>
+    )
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      style={{ position: 'relative', width: '100%', height: '100%' }}
+    >
+      <canvas ref={canvasRef} />
+      {renderCenter()}
     </div>
   )
 }
