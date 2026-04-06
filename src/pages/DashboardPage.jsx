@@ -4,32 +4,41 @@ import BarChart from '../components/charts/BarChart'
 import PriceChart from '../components/charts/PriceChart'
 import DonutChartCJ from '../components/charts/DonutChartCJ'
 
-// ── Filter pill ──────��────────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════════════════
+   FIGMA SPEC (1280×720 viewport)
+   ─────────────────────────────────────────────────────────────────────────
+   Left col:  607px  (47.4%)     Right col: 612px (47.8%)
+   Gap: 10px                     Side padding: 30px each
+   
+   Row 1 (top strips):   101px   — Deviation (black) | Reliability (white/80)
+   Row 2 (main charts):  260px   — Price (black)     | Defect (white)
+   Row 3 (bottom):       230px   — Reaction (white)  | Donut (white)
+   
+   Row gaps: 10px
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+// ── Filter pill ───────────────────────────────────────────────────────────────
 function FilterPill({ label, value, options, open, onToggle, onSelect }) {
   return (
     <div style={{ position: 'relative', display: 'inline-block' }}>
       <div style={{
-        color: 'rgba(0,0,0,.35)', fontSize: 10,
-        letterSpacing: '.05em', textTransform: 'uppercase',
-        marginBottom: 3, whiteSpace: 'nowrap',
+        color: 'rgba(0,0,0,0.30)', fontSize: 8,
+        letterSpacing: 0.4, marginBottom: 2,
+        whiteSpace: 'nowrap',
       }}>
         {label}
       </div>
       <div
         onClick={onToggle}
         style={{
-          background: open ? '#f3c0d2' : '#f8d7e0',
-          borderRadius: 8, height: 26,
-          display: 'flex', alignItems: 'center', padding: '0 10px',
-          cursor: 'pointer', userSelect: 'none',
-          transition: 'background 0.15s', whiteSpace: 'nowrap',
-          minWidth: 130,
+          background: '#F8D7E0', borderRadius: 10, height: 15,
+          display: 'flex', alignItems: 'center', padding: '0 9px',
+          cursor: 'pointer', userSelect: 'none', width: 119,
+          boxSizing: 'border-box',
         }}
-        onMouseEnter={e => { if (!open) e.currentTarget.style.background = '#f3c0d2' }}
-        onMouseLeave={e => { if (!open) e.currentTarget.style.background = '#f8d7e0' }}
       >
-        <span style={{ color: '#000', fontSize: 10, flex: 1 }}>{value}</span>
-        <span style={{ fontSize: 9, color: '#bf3580', marginLeft: 6 }}>{open ? '▴' : '▾'}</span>
+        <span style={{ color: '#000', fontSize: 7, flex: 1 }}>{value}</span>
+        <span style={{ fontSize: 7, color: '#000', marginLeft: 4 }}>{open ? '▴' : '▾'}</span>
       </div>
       {open && (
         <div style={{
@@ -45,7 +54,7 @@ function FilterPill({ label, value, options, open, onToggle, onSelect }) {
               key={opt}
               onClick={() => onSelect(opt)}
               style={{
-                padding: '8px 14px', fontSize: 10,
+                padding: '6px 10px', fontSize: 7,
                 color: opt === value ? '#bf3580' : '#333',
                 background: opt === value ? '#fdf0f5' : 'transparent',
                 cursor: 'pointer', whiteSpace: 'nowrap',
@@ -63,72 +72,57 @@ function FilterPill({ label, value, options, open, onToggle, onSelect }) {
   )
 }
 
-// ── White card wrapper ────────────────────────────────────────────────────────
-function Card({ title, children, style }) {
-  return (
-    <div style={{
-      background: '#fff', borderRadius: 15, display: 'flex',
-      flexDirection: 'column', overflow: 'hidden',
-      minHeight: 0, height: '100%',
-      ...style,
-    }}>
-      {title && (
-        <div style={{
-          padding: '10px 14px 4px',
-          fontSize: 10, fontWeight: 600, color: 'rgba(0,0,0,0.8)',
-          textTransform: 'uppercase', letterSpacing: '.03em', flexShrink: 0,
-        }}>
-          {title}
-        </div>
-      )}
-      {children}
-    </div>
-  )
-}
-
-// ── Deviation strip (розовый фон как на эталоне) ──────────────────────────────
+// ── Deviation strip — BLACK background ────────────────────────────────────────
 function DeviationStrip({ suppliers }) {
   return (
     <div style={{
-      background: '#fdf0f5', borderRadius: 15,
-      display: 'flex', flexDirection: 'column',
-      overflow: 'hidden', height: '100%',
+      background: '#000', borderRadius: 15, height: '100%',
+      display: 'flex', flexDirection: 'column', overflow: 'hidden',
     }}>
       <div style={{
-        padding: '8px 14px 4px',
-        fontSize: 10, fontWeight: 600, color: 'rgba(0,0,0,0.8)',
-        textTransform: 'uppercase', letterSpacing: '.03em', flexShrink: 0,
+        padding: '10px 16px 4px',
+        color: 'rgba(255,255,255,0.80)', fontSize: 10,
+        textTransform: 'uppercase', flexShrink: 0,
       }}>
         Отклонение цены поставщика от средней закупочной цены по материалу
       </div>
       <div style={{
-        display: 'flex', padding: '2px 10px 8px',
-        gap: 2, flex: 1,
+        display: 'flex', padding: '0 16px 8px', flex: 1,
       }}>
         {suppliers.map(s => {
           const pos = s.deviation >= 0
-          const color = pos ? '#e84342' : '#00b473'
+          const color = pos ? '#FFA617' : '#00B473'
           return (
             <div key={s.id} style={{
-              flex: 1, minWidth: 0, padding: '4px 6px',
+              flex: 1, minWidth: 0,
               display: 'flex', flexDirection: 'column', justifyContent: 'center',
             }}>
-              <div style={{ fontSize: 8, color: '#888', marginBottom: 1 }}>{s.label}</div>
-              <div style={{ display: 'flex', alignItems: 'baseline', lineHeight: 1 }}>
-                <span style={{ fontSize: 22, fontWeight: 700, color }}>
-                  {pos ? '+' : ''}{s.deviation.toFixed(2)}
+              <div style={{ fontSize: 9, color: '#808082', marginBottom: 2 }}>{s.label}</div>
+              <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color }}>{pos ? '+' : ''}</span>
+                <span style={{ fontSize: 20, fontWeight: 700, color }}>
+                  {Math.abs(s.deviation).toFixed(2).replace('.', ',')}
                 </span>
-                <span style={{ fontSize: 12, color, marginLeft: 1 }}>%</span>
+                <span style={{ fontSize: 8.67, color: 'transparent' }}>&nbsp;</span>
+                <span style={{ fontSize: 10, color: '#808082' }}>%</span>
               </div>
-              <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+              <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
                 <div>
-                  <div style={{ fontSize: 7, color: '#aaa' }}>объем</div>
-                  <div style={{ fontSize: 8, color: '#555' }}>{s.volume.toLocaleString('ru')}</div>
+                  <div style={{ fontSize: 6, color: '#808082', textTransform: 'lowercase', lineHeight: '6.6px' }}>объем</div>
+                  <div style={{ marginTop: 1 }}>
+                    <span style={{ fontSize: 8.67, fontWeight: 700, color: '#808082' }}>
+                      {s.volume.toLocaleString('ru')}
+                    </span>
+                    <span style={{ fontSize: 4, color: '#808082' }}> шт</span>
+                  </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 7, color: '#aaa' }}>переплата</div>
-                  <div style={{ fontSize: 8, color }}>
-                    {s.overpay >= 0 ? '+' : ''}{s.overpay.toFixed(2)}
+                  <div style={{ fontSize: 6, color: '#808082', lineHeight: '6.6px' }}>переплата</div>
+                  <div style={{ marginTop: 1 }}>
+                    <span style={{ fontSize: 8.67, fontWeight: 700, color: '#808082' }}>
+                      {s.overpay >= 0 ? '+' : ''}{s.overpay.toFixed(2).replace('.', ',')}
+                    </span>
+                    <span style={{ fontSize: 4, color: '#808082' }}> тыс руб</span>
                   </div>
                 </div>
               </div>
@@ -140,13 +134,22 @@ function DeviationStrip({ suppliers }) {
   )
 }
 
-// ── Reliability strip (белый фон, без прогресс-баров) ─────────────────────────
+// ── Reliability strip — white/80 background, pink numbers ────────────���────────
 function ReliabilityStrip({ suppliers }) {
   return (
-    <Card title="Индекс надёжности поставщика">
+    <div style={{
+      background: 'rgba(255,255,255,0.80)', borderRadius: 15, height: '100%',
+      display: 'flex', flexDirection: 'column', overflow: 'hidden',
+    }}>
       <div style={{
-        display: 'flex', padding: '2px 10px 8px',
-        gap: 2, flex: 1,
+        padding: '10px 13px 4px',
+        color: 'rgba(0,0,0,0.80)', fontSize: 10,
+        textTransform: 'uppercase', flexShrink: 0,
+      }}>
+        Индекс надежности поставщика
+      </div>
+      <div style={{
+        display: 'flex', padding: '0 13px 8px', flex: 1,
       }}>
         {suppliers.map(s => {
           const v = s.reliability
@@ -154,27 +157,73 @@ function ReliabilityStrip({ suppliers }) {
             <div key={s.id} style={{
               flex: 1, minWidth: 0,
               display: 'flex', flexDirection: 'column', justifyContent: 'center',
-              padding: '0 4px',
             }}>
-              <div style={{ fontSize: 8, color: '#888', marginBottom: 1 }}>{s.label}</div>
-              <div style={{ display: 'flex', alignItems: 'baseline', lineHeight: 1 }}>
-                <span style={{ fontSize: 22, fontWeight: 700, color: '#000' }}>
-                  {v.toFixed(2)}
+              <div style={{ fontSize: 9, color: '#808082', marginBottom: 2 }}>{s.label}</div>
+              <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                <span style={{ fontSize: 20, fontWeight: 700, color: '#EA529B' }}>
+                  {v.toFixed(2).replace('.', ',')}
                 </span>
-                <span style={{ fontSize: 12, color: '#666', marginLeft: 2 }}>%</span>
+                <span style={{ fontSize: 10, color: '#808082', marginLeft: 2 }}>%</span>
               </div>
-              <div style={{ fontSize: 7, color: '#aaa', marginTop: 3, lineHeight: 1.2 }}>
+              <div style={{
+                fontSize: 6, color: '#808082', marginTop: 3,
+                lineHeight: '6.6px', textTransform: 'lowercase',
+                maxWidth: 70,
+              }}>
                 {s.reliabilityNote}
               </div>
             </div>
           )
         })}
       </div>
-    </Card>
+    </div>
   )
 }
 
-// ── Donut card — белый фон, пончик слева, легенда справа ──────────────────────
+// ── Card wrapper ──────────────────────────────────────────────────────────────
+function ChartCard({ title, dark, children, legendItems }) {
+  const bg = dark ? '#000' : '#fff'
+  const titleColor = dark ? 'rgba(255,255,255,0.80)' : 'rgba(0,0,0,0.80)'
+  const legendColor = dark ? '#fff' : '#000'
+
+  return (
+    <div style={{
+      background: bg, borderRadius: 15, height: '100%',
+      display: 'flex', flexDirection: 'column', overflow: 'hidden',
+    }}>
+      <div style={{
+        padding: '12px 19px 4px',
+        color: titleColor, fontSize: 10,
+        textTransform: 'uppercase', flexShrink: 0,
+      }}>
+        {title}
+      </div>
+      <div style={{ flex: 1, minHeight: 0, padding: '0 8px', position: 'relative' }}>
+        {children}
+      </div>
+      {legendItems && (
+        <div style={{
+          display: 'flex', gap: 12, padding: '4px 19px 10px', flexShrink: 0,
+        }}>
+          {legendItems.map(item => (
+            <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              {item.type === 'dash'
+                ? <svg width={16} height={6}><line x1={0} y1={3} x2={16} y2={3} stroke={item.color} strokeWidth={1.5} strokeDasharray="4 3" /></svg>
+                : <div style={{
+                    width: 6, height: 6, borderRadius: '50%',
+                    background: item.gradient || item.color,
+                  }} />
+              }
+              <span style={{ fontSize: 6, color: legendColor }}>{item.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Donut card — white, horizontal layout ─────────────────────────────────────
 function DonutCard({ segments, totalAmount }) {
   const chartData = segments.map(s => ({
     label: s.label,
@@ -187,61 +236,72 @@ function DonutCard({ segments, totalAmount }) {
     : ''
 
   return (
-    <Card title="Структура поставщиков">
+    <div style={{
+      background: '#fff', borderRadius: 15, height: '100%',
+      display: 'flex', flexDirection: 'column', overflow: 'hidden',
+    }}>
+      <div style={{
+        padding: '10px 13px 4px',
+        color: 'rgba(0,0,0,0.80)', fontSize: 10,
+        textTransform: 'uppercase', flexShrink: 0,
+      }}>
+        Структура поставщиков
+      </div>
+
+      {/* Donut (left ~52%) + Legend (right ~48%) */}
       <div style={{
         flex: 1, minHeight: 0,
         display: 'flex', alignItems: 'center',
-        padding: '4px 14px 10px',
-        gap: 10,
+        padding: '0 13px 10px',
         overflow: 'hidden',
       }}>
-        {/* Donut — фиксированная ширина 45% карточки, квадратный */}
+        {/* Donut container — square, sized by height */}
         <div style={{
-          width: '45%', flexShrink: 0,
+          flex: '0 0 52%',
           position: 'relative',
+          alignSelf: 'stretch',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          {/* Квадратный контейнер через padding-bottom trick */}
           <div style={{
             width: '100%',
-            paddingBottom: '100%', /* 1:1 aspect ratio */
+            paddingBottom: '100%',
             position: 'relative',
           }}>
             <div style={{
               position: 'absolute',
-              top: 0, left: 0, right: 0, bottom: 0,
+              top: '50%', left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '90%', height: '90%',
             }}>
               <DonutChartCJ data={chartData} total={totalStr} />
             </div>
           </div>
         </div>
 
-        {/* Legend */}
+        {/* Legend — right side */}
         <div style={{
           flex: 1, minWidth: 0,
           display: 'flex', flexDirection: 'column',
           justifyContent: 'center',
-          gap: 8,
+          gap: 10,
+          paddingLeft: 20,
         }}>
           {segments.map(s => (
-            <div
-              key={s.id}
-              style={{
-                display: 'flex', alignItems: 'center',
-                gap: 10,
-              }}
-            >
+            <div key={s.id} style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+            }}>
               <div style={{
-                width: 8, height: 8, borderRadius: '50%', background: s.color,
-                flexShrink: 0,
+                width: 6, height: 6, borderRadius: '50%',
+                background: s.color, flexShrink: 0,
               }} />
               <span style={{
-                fontSize: 10, color: '#333', flex: 1,
+                fontSize: 10, color: '#000', flex: 1,
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
               }}>
                 {s.label}
               </span>
               <span style={{
-                fontSize: 10, color: '#333', fontWeight: 600,
+                fontSize: 10, color: '#000',
                 whiteSpace: 'nowrap', flexShrink: 0,
               }}>
                 {(s.amount ?? s.value).toFixed(2).replace('.', ',')} млн руб
@@ -250,23 +310,6 @@ function DonutCard({ segments, totalAmount }) {
           ))}
         </div>
       </div>
-    </Card>
-  )
-}
-
-// ── Legend row ─────────────────────────────────────────────────────────────────
-function LegendRow({ items }) {
-  return (
-    <div style={{ display: 'flex', gap: 14, padding: '4px 14px 8px', flexShrink: 0 }}>
-      {items.map(item => (
-        <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-          {item.type === 'dash'
-            ? <svg width={20} height={6}><line x1={0} y1={3} x2={20} y2={3} stroke={item.color} strokeWidth={1.5} strokeDasharray="4 3" /></svg>
-            : <div style={{ width: 8, height: 8, borderRadius: '50%', background: item.color }} />
-          }
-          <span style={{ fontSize: 8, color: '#888' }}>{item.label}</span>
-        </div>
-      ))}
     </div>
   )
 }
@@ -308,12 +351,32 @@ export default function DashboardPage({ onBack }) {
   const normDefect = 3
   const normReaction = 12
 
+  /* ══════════════════════════════════════════════════════════════════════════
+     GRID — exact Figma proportions
+     
+     Columns: 607fr  612fr   (≈ 49.8% | 50.2%)
+     Rows:    101fr  260fr  230fr
+     Gap:     10px
+     Padding: 30px
+     
+     ┌──────────────────┬──────────────────┐
+     │  Deviation       │  Reliability     │  101px (17.1%)
+     │  (BLACK)         │  (white/80)      │
+     ├──────────────────┼──────────────────┤
+     │  Price chart     │  Defect chart    │  260px (44.0%)
+     │  (BLACK)         │  (white)         │
+     ├──────────────────┼──────────────────┤
+     │  Reaction chart  │  Donut           │  230px (38.9%)
+     │  (white)         │  (white)         │
+     └──────────────────┴──────────────────┘
+     ══════════════════════════════════════════════════════════════════════════ */
+
   return (
     <div
       style={{
-        width: '100%', height: '100%', background: '#f6f1f5',
+        width: '100%', height: '100%', background: '#F6F1F5',
         display: 'flex', flexDirection: 'column',
-        padding: '8px 20px 8px',
+        padding: '6px 30px 10px',
         boxSizing: 'border-box', overflow: 'hidden',
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0)' : 'translateY(30px)',
@@ -323,14 +386,14 @@ export default function DashboardPage({ onBack }) {
     >
       {/* ── Header ── */}
       <div style={{
-        display: 'flex', alignItems: 'flex-end', gap: 12,
-        marginBottom: 6, flexShrink: 0,
+        display: 'flex', alignItems: 'center', gap: 16,
+        flexShrink: 0, marginBottom: 2,
       }}>
         <button
           onClick={e => { e.stopPropagation(); onBack() }}
           style={{
-            width: 30, height: 30, borderRadius: '50%', border: 'none',
-            background: '#f8d7e0', cursor: 'pointer', display: 'flex',
+            width: 30, height: 30, borderRadius: 15, border: 'none',
+            background: '#F8D7E0', cursor: 'pointer', display: 'flex',
             alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}
         >
@@ -339,16 +402,16 @@ export default function DashboardPage({ onBack }) {
           </svg>
         </button>
         <div style={{
-          fontSize: 22, fontWeight: 800, letterSpacing: '-.02em',
-          lineHeight: 1, color: '#000',
+          fontSize: 22, textTransform: 'uppercase',
+          lineHeight: '33px', color: '#000',
         }}>
-          ПОРТФЕЛЬ ПОСТАВЩИКОВ И ПОТЕНЦИАЛ ОПТИМИЗАЦИИ
+          Портфель поставщиков и потенциал оптимизации
         </div>
       </div>
 
       {/* ── Filter pills ── */}
       <div
-        style={{ display: 'flex', gap: 16, marginBottom: 8, flexShrink: 0 }}
+        style={{ display: 'flex', gap: 19, marginBottom: 8, flexShrink: 0 }}
         onClick={e => e.stopPropagation()}
       >
         {pills.map(p => (
@@ -364,75 +427,63 @@ export default function DashboardPage({ onBack }) {
         ))}
       </div>
 
-      {/* ═════════════���════════════════════════════════════════════════════════
-          GRID 2×3 — точные пропорции с эталона
-
-          Колонки:  52% | 48%
-          Строки:   auto | 1.15fr | 1fr
-
-          ┌──────────────────────┬──────────────────────┐
-          │   Deviation (pink)   │   Reliability (white) │  auto (~15%)
-          ├──────────────────────┼──────────────────────┤
-          │   Price chart        │   Defect chart        │  1.15fr (~44%)
-          ├──────────────────────┼──────────────────────┤
-          │   Reaction chart     │   Donut card          │  1fr (~41%)
-          └──────────────────────┴──────────────────────┘
-          ══════════════════════════════════════════════════════════════════════ */}
+      {/* ── Main grid — Figma-exact proportions ── */}
       <div style={{
         flex: 1, minHeight: 0,
         display: 'grid',
-        gridTemplateColumns: '52fr 48fr',
-        gridTemplateRows: 'auto 1.15fr 1fr',
-        gap: 8,
+        gridTemplateColumns: '607fr 612fr',
+        gridTemplateRows: '101fr 260fr 230fr',
+        gap: 10,
         overflow: 'hidden',
       }}>
-        {/* Row 1 */}
+        {/* ── Row 1 ── */}
         <DeviationStrip suppliers={suppliers} />
         <ReliabilityStrip suppliers={suppliers} />
 
-        {/* Row 2 — Price chart + Defect chart */}
-        <Card title="Сравнительный анализ закупочных цен у поставщиков, руб">
-          <div style={{ flex: 1, padding: '0 8px', minHeight: 0 }}>
-            <PriceChart suppliers={suppliersWithPrice} avgPrice={avgPrice} />
-          </div>
-          <LegendRow items={[
-            { label: 'средняя з��купочная цена', color: '#e84342', type: 'dash' },
-            { label: 'цена у поставщиков', color: '#808082', type: 'circle' },
-          ]} />
-        </Card>
+        {/* ── Row 2: Price (dark) + Defect (light) ── */}
+        <ChartCard
+          title="Сравнительный анализ закупочных цен у поставщиков, руб"
+          dark
+          legendItems={[
+            { label: 'средняя закупочная цена', gradient: 'linear-gradient(180deg, #BF3580 0%, #F8D7E0 100%)', type: 'circle' },
+            { label: 'цена у поставщиков', gradient: 'linear-gradient(180deg, #fff 16%, rgba(209,209,209,0.42) 100%)', type: 'circle' },
+          ]}
+        >
+          <PriceChart suppliers={suppliersWithPrice} avgPrice={avgPrice} />
+        </ChartCard>
 
-        <Card title="Уровень брака по поставщикам, %">
-          <div style={{ flex: 1, padding: '0 8px', minHeight: 0 }}>
-            <BarChart
-              suppliers={suppliers}
-              getValue={s => s.defectRate ?? 0}
-              colorVariant="pink"
-              normLine={normDefect}
-              normLabel={`норма ${normDefect}%`}
-            />
-          </div>
-          <LegendRow items={[
-            { label: 'уровень брака', color: '#bf3580', type: 'circle' },
+        <ChartCard
+          title="Уровень брака по поставщикам, %"
+          legendItems={[
+            { label: 'уровень брака', gradient: 'linear-gradient(180deg, #F8D7E0 0%, #BF3580 100%)', type: 'circle' },
             { label: 'допустимая норма', color: '#e84342', type: 'dash' },
-          ]} />
-        </Card>
+          ]}
+        >
+          <BarChart
+            suppliers={suppliers}
+            getValue={s => s.defectRate ?? 0}
+            colorVariant="pink"
+            normLine={normDefect}
+            normLabel={`норма ${normDefect}%`}
+          />
+        </ChartCard>
 
-        {/* Row 3 — Reaction chart + Donut */}
-        <Card title="Скорость реакции поставщика на запросы, часы">
-          <div style={{ flex: 1, padding: '0 8px', minHeight: 0 }}>
-            <BarChart
-              suppliers={suppliers}
-              getValue={s => s.reactionTime ?? 0}
-              colorVariant="grey"
-              normLine={normReaction}
-              normLabel={`норма ${normReaction}ч`}
-            />
-          </div>
-          <LegendRow items={[
-            { label: 'время реакции', color: '#808082', type: 'circle' },
+        {/* ── Row 3: Reaction (light) + Donut (light) ── */}
+        <ChartCard
+          title="Скорость реакции поставщика на запросы, часы"
+          legendItems={[
+            { label: 'время реакции', gradient: 'linear-gradient(180deg, #808082 16%, #CDCCCC 71%)', type: 'circle' },
             { label: 'допустимая норма', color: '#e84342', type: 'dash' },
-          ]} />
-        </Card>
+          ]}
+        >
+          <BarChart
+            suppliers={suppliers}
+            getValue={s => s.reactionTime ?? 0}
+            colorVariant="grey"
+            normLine={normReaction}
+            normLabel={`норма ${normReaction}ч`}
+          />
+        </ChartCard>
 
         <DonutCard segments={donutSegments} totalAmount={totalAmount} />
       </div>
