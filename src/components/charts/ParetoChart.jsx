@@ -3,7 +3,7 @@ import Chart from 'chart.js/auto'
 
 export default function ParetoChart({ labels, costData, cumulativeData }) {
   const canvasRef = useRef(null)
-  const chartRef  = useRef(null)
+  const chartRef = useRef(null)
 
   useEffect(() => {
     if (chartRef.current) {
@@ -11,7 +11,12 @@ export default function ParetoChart({ labels, costData, cumulativeData }) {
       chartRef.current = null
     }
 
-    const ctx = canvasRef.current.getContext('2d')
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+
+    /* Force high-res rendering on all screens */
+    const dpr = Math.max(window.devicePixelRatio || 1, 2)
 
     const gradId = ctx.createLinearGradient(0, 0, 0, 300)
     gradId.addColorStop(0, '#808082')
@@ -30,7 +35,9 @@ export default function ParetoChart({ labels, costData, cumulativeData }) {
             const val = ds.data[i]
             if (val == null) return
             c.save()
-            c.font = 'bold 9px Inter, sans-serif'
+            c.font = di === 0
+              ? 'bold 9px Pragmatica, Inter, sans-serif'
+              : 'bold 9px Pragmatica, Inter, sans-serif'
             c.fillStyle = di === 0 ? '#333' : '#bf3580'
             c.textAlign = 'center'
             c.textBaseline = di === 0 ? 'bottom' : 'middle'
@@ -89,6 +96,8 @@ export default function ParetoChart({ labels, costData, cumulativeData }) {
         animation: { duration: 400 },
         responsive: true,
         maintainAspectRatio: false,
+        /* ═══ KEY FIX: crisp rendering ═══ */
+        devicePixelRatio: dpr,
         plugins: {
           legend: { display: false },
           tooltip: { enabled: true },
