@@ -1,8 +1,9 @@
 import React from 'react'
 
 export default function BarChart({ suppliers, getValue, colorVariant, normLine, normLabel }) {
-  const W = 560, H = 200
-  const L = 30, R = 50, T = 22, B = 30
+  /* Увеличенный viewBox для чёткости на HiDPI */
+  const W = 1120, H = 400
+  const L = 60, R = 100, T = 44, B = 56
   const CH = H - T - B
   const isPink = colorVariant === 'pink'
   const gradId = `bar-grad-${colorVariant}`
@@ -15,9 +16,7 @@ export default function BarChart({ suppliers, getValue, colorVariant, normLine, 
   const rawMax = Math.max(...vals, normLine || 0)
   const niceMax = Math.ceil(rawMax * 1.25) || 1
   const step = (W - L - R) / suppliers.length
-  const barW = 24
-
-  /* Y-axis ticks */
+  const barW = 48
   const yTicks = 6
   const tickStep = niceMax / (yTicks - 1)
 
@@ -27,6 +26,7 @@ export default function BarChart({ suppliers, getValue, colorVariant, normLine, 
       width="100%" height="100%"
       preserveAspectRatio="xMidYMid meet"
       style={{ display: 'block' }}
+      xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
         <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
@@ -43,10 +43,10 @@ export default function BarChart({ suppliers, getValue, colorVariant, normLine, 
         const y = T + CH - (v / niceMax) * CH
         return (
           <g key={t}>
-            <line x1={L} y1={y} x2={W - R} y2={y} stroke="rgba(0,0,0,0.06)" strokeWidth="0.5" />
+            <line x1={L} y1={y} x2={W - R} y2={y} stroke="rgba(0,0,0,0.06)" strokeWidth="1" />
             <text
-              x={L - 4} y={y + 3}
-              textAnchor="end" fontSize="6" fill="rgba(0,0,0,0.5)"
+              x={L - 8} y={y + 4}
+              textAnchor="end" fontSize="12" fill="rgba(0,0,0,0.5)"
               fontFamily="Pragmatica, sans-serif"
             >
               {Math.round(v)}
@@ -57,8 +57,8 @@ export default function BarChart({ suppliers, getValue, colorVariant, normLine, 
 
       {/* Y-axis title */}
       <text
-        transform={`translate(8, ${T + CH / 2}) rotate(-90)`}
-        textAnchor="middle" fontSize="6" fill="rgba(0,0,0,0.5)"
+        transform={`translate(16, ${T + CH / 2}) rotate(-90)`}
+        textAnchor="middle" fontSize="12" fill="rgba(0,0,0,0.5)"
         fontFamily="Pragmatica, sans-serif"
       >
         {isPink ? 'уровень брака, %' : 'время реакции, часы'}
@@ -66,8 +66,8 @@ export default function BarChart({ suppliers, getValue, colorVariant, normLine, 
 
       {/* X-axis title */}
       <text
-        x={(L + W - R) / 2} y={H - 2}
-        textAnchor="middle" fontSize="6" fill="rgba(0,0,0,0.5)"
+        x={(L + W - R) / 2} y={H - 4}
+        textAnchor="middle" fontSize="12" fill="rgba(0,0,0,0.5)"
         fontFamily="Pragmatica, sans-serif"
       >
         поставщик
@@ -78,11 +78,11 @@ export default function BarChart({ suppliers, getValue, colorVariant, normLine, 
         const ny = T + CH - (normLine / niceMax) * CH
         return (
           <g>
-            <line x1={L} y1={ny} x2={W - R} y2={ny} stroke="#e84342" strokeWidth="1" strokeDasharray="4 3" />
+            <line x1={L} y1={ny} x2={W - R} y2={ny} stroke="#e84342" strokeWidth="2" strokeDasharray="8 6" />
             {normLabel && (
               <text
-                x={W - R + 4} y={ny + 3}
-                fontSize="6" fill="#e84342" fontFamily="Pragmatica, sans-serif"
+                x={W - R + 8} y={ny + 4}
+                fontSize="12" fill="#e84342" fontFamily="Pragmatica, sans-serif"
               >
                 {normLabel}
               </text>
@@ -91,26 +91,25 @@ export default function BarChart({ suppliers, getValue, colorVariant, normLine, 
         )
       })()}
 
-      {/* Right Y-axis labels (количество, шт) — for defect chart only */}
+      {/* Right Y-axis (defect chart only) */}
       {isPink && Array.from({ length: yTicks }).map((_, t) => {
         const v = Math.round((100 / (yTicks - 1)) * t)
         const y = T + CH - (t / (yTicks - 1)) * CH
         return (
           <text
             key={`r${t}`}
-            x={W - R + 4} y={y + 3}
-            fontSize="6" fill="rgba(0,0,0,0.5)"
+            x={W - R + 8} y={y + 4}
+            fontSize="12" fill="rgba(0,0,0,0.5)"
             fontFamily="Pragmatica, sans-serif"
           >
             {v}
           </text>
         )
       })}
-
       {isPink && (
         <text
-          transform={`translate(${W - 4}, ${T + CH / 2}) rotate(90)`}
-          textAnchor="middle" fontSize="6" fill="rgba(0,0,0,0.5)"
+          transform={`translate(${W - 8}, ${T + CH / 2}) rotate(90)`}
+          textAnchor="middle" fontSize="12" fill="rgba(0,0,0,0.5)"
           fontFamily="Pragmatica, sans-serif"
         >
           количество, шт
@@ -120,7 +119,7 @@ export default function BarChart({ suppliers, getValue, colorVariant, normLine, 
       {/* Bars */}
       {suppliers.map((s, i) => {
         const val = getValue(s)
-        const bH = Math.max(2, (val / niceMax) * CH)
+        const bH = Math.max(4, (val / niceMax) * CH)
         const cx = L + i * step + step / 2
         const bx = cx - barW / 2
         const by = T + CH - bH
@@ -133,16 +132,16 @@ export default function BarChart({ suppliers, getValue, colorVariant, normLine, 
               rx={barW / 2}
             />
             <text
-              x={cx} y={by - 4}
-              textAnchor="middle" fontSize="6" fontWeight="700"
+              x={cx} y={by - 8}
+              textAnchor="middle" fontSize="12" fontWeight="700"
               fill="#000" fontFamily="Pragmatica, sans-serif"
             >
               {typeof val === 'number' ? (Number.isInteger(val) ? val : val.toFixed(1)) : val}
               {isPink ? '%' : ''}
             </text>
             <text
-              x={cx} y={T + CH + 14}
-              textAnchor="middle" fontSize="7" fill="#000"
+              x={cx} y={T + CH + 28}
+              textAnchor="middle" fontSize="14" fill="#000"
               fontFamily="Pragmatica, sans-serif"
             >
               {s.label || ''}
