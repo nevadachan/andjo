@@ -162,7 +162,6 @@ function Dropdown({ label, options, value, onChange }) {
   )
 }
 
-// ── Volume Bar Chart (SVG) ──────────────────────────────────��─────────────────
 function VolumeBarChart({ data, animKey }) {
   const VW = 700, VH = 220
   const ML = 34, MR = 6, MT = 20, MB = 26
@@ -492,7 +491,7 @@ export default function StrategicPage({ onBack }) {
               </div>
               <div style={{ display: 'flex' }} key={kpiKey}>
                 {[
-                  { label: 'об��ем закупок',           value: kp.volume,      unit: 'млн руб' },
+                  { label: 'объем закупок',           value: kp.volume,      unit: 'млн руб' },
                   { label: 'средняя закупочная цена',  value: kp.avgPrice,    unit: 'руб/ед'  },
                   { label: 'среднегодовой рост цен',   value: kp.priceGrowth, unit: '%'       },
                   { label: 'активные поставщики',      value: kp.suppliers,   unit: 'шт'      },
