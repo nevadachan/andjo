@@ -4,21 +4,6 @@ import BarChart from '../components/charts/BarChart'
 import PriceChart from '../components/charts/PriceChart'
 import DonutChartCJ from '../components/charts/DonutChartCJ'
 
-const CSS = `
-  @keyframes cardIn {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-  @keyframes ddIn {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-`
-
 // ── Animated counter ──────────────────────────────────────────────────────────
 function useCountUp(target, duration = 600) {
   const [val, setVal] = useState(0)
@@ -26,22 +11,21 @@ function useCountUp(target, duration = 600) {
     setVal(0)
     const num = parseFloat(String(target).replace(',', '.')) || 0
     const start = performance.now()
-    const raf = now => {
+    const tick = now => {
       const p = Math.min((now - start) / duration, 1)
       const ease = 1 - Math.pow(1 - p, 3)
       setVal(ease * num)
-      if (p < 1) requestAnimationFrame(raf)
+      if (p < 1) requestAnimationFrame(tick)
       else setVal(num)
     }
-    requestAnimationFrame(raf)
+    requestAnimationFrame(tick)
   }, [target])
   return val
 }
 
-function AnimatedNumber({ value, decimals = 2 }) {
-  const counted = useCountUp(value, 600)
-  const display = decimals === 0 ? Math.round(counted) : counted.toFixed(decimals).replace('.', ',')
-  return <>{display}</>
+function Num({ value, decimals = 2 }) {
+  const v = useCountUp(value)
+  return <>{decimals === 0 ? Math.round(v) : v.toFixed(decimals).replace('.', ',')}</>
 }
 
 // ── Filter pill ───────────────────────────────────────────────────────────────
@@ -74,7 +58,6 @@ function FilterPill({ label, value, options, open, onToggle, onSelect }) {
           zIndex: 100, overflow: 'hidden',
           border: '1px solid #f8d7e0', marginTop: 2,
           minWidth: '100%',
-          animation: 'ddIn 0.15s ease',
         }}>
           {options.map(opt => (
             <div
@@ -114,30 +97,30 @@ function DeviationStrip({ suppliers }) {
         Отклонение цены поставщика от средней закупочной цены по материалу
       </div>
       <div style={{ display: 'flex', padding: '0 16px 8px', flex: 1 }}>
-        {suppliers.map((s, i) => {
+        {suppliers.map(s => {
           const pos = s.deviation >= 0
           const color = pos ? '#FFA617' : '#00B473'
           return (
             <div key={s.id} style={{
               flex: 1, minWidth: 0,
               display: 'flex', flexDirection: 'column', justifyContent: 'center',
-              opacity: 0,
-              animation: 'fadeIn 0.5s ease forwards',
-              animationDelay: `${i * 50 + 200}ms`,
             }}>
               <div style={{ fontSize: 9, color: '#808082', marginBottom: 2 }}>{s.label}</div>
               <div style={{ display: 'flex', alignItems: 'baseline' }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color }}>{pos ? '+' : '−'}</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color }}>{pos ? '+' : ''}</span>
                 <span style={{ fontSize: 20, fontWeight: 700, color }}>
-                  <AnimatedNumber value={Math.abs(s.deviation)} decimals={2} />
+                  <Num value={Math.abs(s.deviation)} decimals={2} />
                 </span>
+                <span style={{ fontSize: 8.67, color: 'transparent' }}>&nbsp;</span>
                 <span style={{ fontSize: 10, color: '#808082' }}>%</span>
               </div>
               <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
                 <div>
                   <div style={{ fontSize: 6, color: '#808082', textTransform: 'lowercase', lineHeight: '6.6px' }}>объем</div>
                   <div style={{ marginTop: 1 }}>
-                    <span style={{ fontSize: 8.67, fontWeight: 700, color: '#808082' }}>{s.volume.toLocaleString('ru')}</span>
+                    <span style={{ fontSize: 8.67, fontWeight: 700, color: '#808082' }}>
+                      {s.volume.toLocaleString('ru')}
+                    </span>
                     <span style={{ fontSize: 4, color: '#808082' }}> шт</span>
                   </div>
                 </div>
@@ -145,7 +128,7 @@ function DeviationStrip({ suppliers }) {
                   <div style={{ fontSize: 6, color: '#808082', lineHeight: '6.6px' }}>переплата</div>
                   <div style={{ marginTop: 1 }}>
                     <span style={{ fontSize: 8.67, fontWeight: 700, color: '#808082' }}>
-                      {s.overpay >= 0 ? '+' : '−'}<AnimatedNumber value={Math.abs(s.overpay)} decimals={2} />
+                      {s.overpay >= 0 ? '+' : ''}<Num value={s.overpay} decimals={2} />
                     </span>
                     <span style={{ fontSize: 4, color: '#808082' }}> тыс руб</span>
                   </div>
@@ -174,18 +157,15 @@ function ReliabilityStrip({ suppliers }) {
         Индекс надежности поставщика
       </div>
       <div style={{ display: 'flex', padding: '0 13px 8px', flex: 1 }}>
-        {suppliers.map((s, i) => (
+        {suppliers.map(s => (
           <div key={s.id} style={{
             flex: 1, minWidth: 0,
             display: 'flex', flexDirection: 'column', justifyContent: 'center',
-            opacity: 0,
-            animation: 'fadeIn 0.5s ease forwards',
-            animationDelay: `${i * 50 + 200}ms`,
           }}>
             <div style={{ fontSize: 9, color: '#808082', marginBottom: 2 }}>{s.label}</div>
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
               <span style={{ fontSize: 20, fontWeight: 700, color: '#EA529B' }}>
-                <AnimatedNumber value={s.reliability} decimals={2} />
+                <Num value={s.reliability} decimals={2} />
               </span>
               <span style={{ fontSize: 10, color: '#808082', marginLeft: 2 }}>%</span>
             </div>
@@ -202,7 +182,7 @@ function ReliabilityStrip({ suppliers }) {
   )
 }
 
-// ── Chart card ────────────────────────────────────────────────────────────────
+// ── Card wrapper ──────────────────────────────────────────────────────────────
 function ChartCard({ title, dark, children, legendItems }) {
   const bg = dark ? '#000' : '#fff'
   const titleColor = dark ? 'rgba(255,255,255,0.80)' : 'rgba(0,0,0,0.80)'
@@ -258,8 +238,7 @@ function DonutCard({ segments, totalAmount }) {
         Структура поставщиков
       </div>
       <div style={{
-        flex: 1, minHeight: 0,
-        display: 'flex', alignItems: 'center',
+        flex: 1, minHeight: 0, display: 'flex', alignItems: 'center',
         padding: '0 13px 10px', overflow: 'hidden',
       }}>
         <div style={{
@@ -278,23 +257,17 @@ function DonutCard({ segments, totalAmount }) {
           </div>
         </div>
         <div style={{
-          flex: 1, minWidth: 0,
-          display: 'flex', flexDirection: 'column',
+          flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column',
           justifyContent: 'center', gap: 10, paddingLeft: 20,
         }}>
-          {segments.map((s, i) => (
-            <div key={s.id} style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              opacity: 0,
-              animation: 'fadeIn 0.5s ease forwards',
-              animationDelay: `${i * 60 + 300}ms`,
-            }}>
+          {segments.map(s => (
+            <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
               <span style={{ fontSize: 10, color: '#000', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {s.label}
               </span>
               <span style={{ fontSize: 10, color: '#000', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                <AnimatedNumber value={s.amount ?? s.value} decimals={2} /> млн руб
+                <Num value={s.amount ?? s.value} decimals={2} /> млн руб
               </span>
             </div>
           ))}
@@ -341,122 +314,101 @@ export default function DashboardPage({ onBack }) {
   const normDefect   = 3
   const normReaction = 12
 
-  // stagger delays for grid cells
-  const cellAnim = i => ({
-    opacity: 0,
-    animation: 'cardIn 0.5s ease forwards',
-    animationDelay: `${i * 60}ms`,
-  })
-
   return (
-    <>
-      <style>{CSS}</style>
-      <div
-        style={{
-          width: '100%', height: '100%', background: '#F6F1F5',
-          display: 'flex', flexDirection: 'column',
-          padding: '6px 30px 10px',
-          boxSizing: 'border-box', overflow: 'hidden',
-          opacity: visible ? 1 : 0,
-          transform: visible ? 'translateY(0)' : 'translateY(30px)',
-          transition: 'opacity .5s ease, transform .5s ease',
-        }}
-        onClick={closePills}
-      >
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0, marginBottom: 2 }}>
-          <button
-            onClick={e => { e.stopPropagation(); onBack() }}
-            style={{
-              width: 30, height: 30, borderRadius: 15, border: 'none',
-              background: '#F8D7E0', cursor: 'pointer', display: 'flex',
-              alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            }}
-          >
-            <svg width={14} height={14} viewBox="0 0 14 14" fill="none">
-              <path d="M9 2L4 7L9 12" stroke="#bf3580" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-          <div style={{ fontSize: 22, textTransform: 'uppercase', lineHeight: '33px', color: '#000' }}>
-            Портфель поставщиков и потенциал оптимизации
-          </div>
-        </div>
-
-        {/* Filter pills */}
-        <div
-          style={{ display: 'flex', gap: 19, marginBottom: 8, flexShrink: 0 }}
-          onClick={e => e.stopPropagation()}
+    <div
+      style={{
+        width: '100%', height: '100%', background: '#F6F1F5',
+        display: 'flex', flexDirection: 'column',
+        padding: '6px 30px 10px',
+        boxSizing: 'border-box', overflow: 'hidden',
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(30px)',
+        transition: 'opacity .5s ease, transform .5s ease',
+      }}
+      onClick={closePills}
+    >
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0, marginBottom: 2 }}>
+        <button
+          onClick={e => { e.stopPropagation(); onBack() }}
+          style={{
+            width: 30, height: 30, borderRadius: 15, border: 'none',
+            background: '#F8D7E0', cursor: 'pointer', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}
         >
-          {pills.map(p => (
-            <FilterPill
-              key={p.key}
-              label={p.label}
-              value={p.value}
-              options={p.options}
-              open={openPill === p.key}
-              onToggle={() => setOpenPill(openPill === p.key ? null : p.key)}
-              onSelect={v => { p.onChange(v); setOpenPill(null) }}
-            />
-          ))}
-        </div>
-
-        {/* Main grid */}
-        <div style={{
-          flex: 1, minHeight: 0,
-          display: 'grid',
-          gridTemplateColumns: '607fr 612fr',
-          gridTemplateRows: '101fr 260fr 230fr',
-          gap: 10,
-          overflow: 'hidden',
-        }}>
-          {/* Row 1 */}
-          <div style={cellAnim(0)}><DeviationStrip suppliers={suppliers} /></div>
-          <div style={cellAnim(1)}><ReliabilityStrip suppliers={suppliers} /></div>
-
-          {/* Row 2 */}
-          <div style={cellAnim(2)}>
-            <ChartCard
-              title="Сравнительный анализ закупочных цен у поставщиков, руб"
-              dark
-              legendItems={[
-                { label: 'средняя закупочная цена', gradient: 'linear-gradient(180deg, #BF3580 0%, #F8D7E0 100%)', type: 'circle' },
-                { label: 'цена у поставщиков', gradient: 'linear-gradient(180deg, #fff 16%, rgba(209,209,209,0.42) 100%)', type: 'circle' },
-              ]}
-            >
-              <PriceChart suppliers={suppliersWithPrice} avgPrice={avgPrice} />
-            </ChartCard>
-          </div>
-
-          <div style={cellAnim(3)}>
-            <ChartCard
-              title="Уровень брака по поставщикам, %"
-              legendItems={[
-                { label: 'уровень брака', gradient: 'linear-gradient(180deg, #F8D7E0 0%, #BF3580 100%)', type: 'circle' },
-                { label: 'допустимая норма', color: '#e84342', type: 'dash' },
-              ]}
-            >
-              <BarChart suppliers={suppliers} getValue={s => s.defectRate ?? 0} colorVariant="pink" normLine={normDefect} normLabel={`норма ${normDefect}%`} />
-            </ChartCard>
-          </div>
-
-          {/* Row 3 */}
-          <div style={cellAnim(4)}>
-            <ChartCard
-              title="Скорость реакции поставщика на запросы, часы"
-              legendItems={[
-                { label: 'время реакции', gradient: 'linear-gradient(180deg, #808082 16%, #CDCCCC 71%)', type: 'circle' },
-                { label: 'допустимая норма', color: '#e84342', type: 'dash' },
-              ]}
-            >
-              <BarChart suppliers={suppliers} getValue={s => s.reactionTime ?? 0} colorVariant="grey" normLine={normReaction} normLabel={`норма ${normReaction}ч`} />
-            </ChartCard>
-          </div>
-
-          <div style={cellAnim(5)}>
-            <DonutCard segments={donutSegments} totalAmount={totalAmount} />
-          </div>
+          <svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+            <path d="M9 2L4 7L9 12" stroke="#bf3580" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <div style={{ fontSize: 22, textTransform: 'uppercase', lineHeight: '33px', color: '#000' }}>
+          Портфель поставщиков и потенциал оптимизации
         </div>
       </div>
-    </>
+
+      {/* Filter pills */}
+      <div
+        style={{ display: 'flex', gap: 19, marginBottom: 8, flexShrink: 0 }}
+        onClick={e => e.stopPropagation()}
+      >
+        {pills.map(p => (
+          <FilterPill
+            key={p.key}
+            label={p.label}
+            value={p.value}
+            options={p.options}
+            open={openPill === p.key}
+            onToggle={() => setOpenPill(openPill === p.key ? null : p.key)}
+            onSelect={v => { p.onChange(v); setOpenPill(null) }}
+          />
+        ))}
+      </div>
+
+      {/* Main grid */}
+      <div style={{
+        flex: 1, minHeight: 0,
+        display: 'grid',
+        gridTemplateColumns: '607fr 612fr',
+        gridTemplateRows: '101fr 260fr 230fr',
+        gap: 10,
+        overflow: 'hidden',
+      }}>
+        <DeviationStrip suppliers={suppliers} />
+        <ReliabilityStrip suppliers={suppliers} />
+
+        <ChartCard
+          title="Сравнительный анализ закупочных цен у поставщиков, руб"
+          dark
+          legendItems={[
+            { label: 'средняя закупочная цена', gradient: 'linear-gradient(180deg, #BF3580 0%, #F8D7E0 100%)', type: 'circle' },
+            { label: 'цена у поставщиков', gradient: 'linear-gradient(180deg, #fff 16%, rgba(209,209,209,0.42) 100%)', type: 'circle' },
+          ]}
+        >
+          <PriceChart suppliers={suppliersWithPrice} avgPrice={avgPrice} />
+        </ChartCard>
+
+        <ChartCard
+          title="Уровень брака по поставщикам, %"
+          legendItems={[
+            { label: 'уровень брака', gradient: 'linear-gradient(180deg, #F8D7E0 0%, #BF3580 100%)', type: 'circle' },
+            { label: 'допустимая норма', color: '#e84342', type: 'dash' },
+          ]}
+        >
+          <BarChart suppliers={suppliers} getValue={s => s.defectRate ?? 0} colorVariant="pink" normLine={normDefect} normLabel={`норма ${normDefect}%`} />
+        </ChartCard>
+
+        <ChartCard
+          title="Скорость реакции поставщика на запросы, часы"
+          legendItems={[
+            { label: 'время реакции', gradient: 'linear-gradient(180deg, #808082 16%, #CDCCCC 71%)', type: 'circle' },
+            { label: 'допустимая норма', color: '#e84342', type: 'dash' },
+          ]}
+        >
+          <BarChart suppliers={suppliers} getValue={s => s.reactionTime ?? 0} colorVariant="grey" normLine={normReaction} normLabel={`норма ${normReaction}ч`} />
+        </ChartCard>
+
+        <DonutCard segments={donutSegments} totalAmount={totalAmount} />
+      </div>
+    </div>
   )
 }
