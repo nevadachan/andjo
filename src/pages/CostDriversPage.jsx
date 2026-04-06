@@ -35,11 +35,6 @@ function Num({ value, decimals = 2 }) {
   )
 }
 
-const fmtDev = (n) => {
-  const abs = Math.abs(n).toFixed(2).replace('.', ',')
-  return (n > 0 ? '+' : n < 0 ? '\u2212' : '') + abs
-}
-
 // ── Filter pill ───────────────────────────────────────────────────────────────
 function FilterPill({ label, value, options, open, onToggle, onSelect }) {
   return (
@@ -65,7 +60,7 @@ function FilterPill({ label, value, options, open, onToggle, onSelect }) {
         onMouseLeave={e => { if (!open) e.currentTarget.style.background = '#f8d7e0' }}
       >
         <span style={{ color: '#000', fontSize: 9, flex: 1 }}>{value}</span>
-        <span style={{ fontSize: 8, color: '#bf3580', marginLeft: 6 }}>{open ? '\u25b4' : '\u25be'}</span>
+        <span style={{ fontSize: 8, color: '#bf3580', marginLeft: 6 }}>{open ? '▴' : '▾'}</span>
       </div>
       {open && (
         <div style={{
@@ -105,9 +100,9 @@ function CostFilters({ period, category, supplier, onPeriodChange, onCategoryCha
   const [openPill, setOpenPill] = useState(null)
 
   const pills = [
-    { label: '\u043f\u0435\u0440\u0438\u043e\u0434', value: period, onChange: onPeriodChange, options: FILTER_OPTIONS.periods },
-    { label: '\u0437\u0430\u043a\u0443\u043f\u043E\u0447\u043D\u0430\u044F \u043a\u0430\u0442\u0435\u0433\u043E\u0440\u0438\u044F', value: category, onChange: onCategoryChange, options: FILTER_OPTIONS.categories },
-    { label: '\u043f\u043e\u0441\u0442\u0430\u0432\u0449\u0438\u043a', value: supplier, onChange: onSupplierChange, options: FILTER_OPTIONS.suppliers },
+    { label: 'период',             value: period,   onChange: onPeriodChange,   options: FILTER_OPTIONS.periods },
+    { label: 'закупочная категория', value: category, onChange: onCategoryChange, options: FILTER_OPTIONS.categories },
+    { label: 'поставщик',          value: supplier, onChange: onSupplierChange, options: FILTER_OPTIONS.suppliers },
   ]
 
   return (
@@ -144,7 +139,7 @@ function DeviationStrip({ materials, animate }) {
         color: 'rgba(0,0,0,0.7)', fontSize: 9, fontWeight: 500,
         textTransform: 'uppercase', letterSpacing: '.03em',
       }}>
-        {'\u041e\u0442\u043a\u043b\u043e\u043d\u0435\u043d\u0438\u0435 \u0446\u0435\u043d\u044b \u043f\u043e\u0441\u0442\u0430\u0432\u0449\u0438\u043a\u0430 \u043e\u0442 \u0441\u0440\u0435\u0434\u043d\u0435\u0439 \u0437\u0430\u043a\u0443\u043f\u043e\u0447\u043d\u043e\u0439 \u0446\u0435\u043d\u044b \u043f\u043e \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u0443'}
+        Отклонение цены поставщика от средней закупочной цены по материалу
       </div>
       <div style={{ display: 'flex', minHeight: 86 }}>
         {materials.map((m, i) => (
@@ -174,17 +169,17 @@ function DeviationStrip({ materials, animate }) {
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
               <div>
-                <div style={{ color: '#808082', fontSize: 7 }}>{'\u043e\u0431\u044a\u0451\u043c'}</div>
+                <div style={{ color: '#808082', fontSize: 7 }}>объём</div>
                 <div style={{ color: '#808082' }}>
                   <span style={{ fontSize: 8, fontWeight: 600 }}>{m.volume.toLocaleString('ru')}</span>
-                  <span style={{ fontSize: 6 }}> {'\u0448\u0442'}</span>
+                  <span style={{ fontSize: 6 }}> шт</span>
                 </div>
               </div>
               <div>
-                <div style={{ color: '#808082', fontSize: 7 }}>{'\u0441\u0440. \u0446\u0435\u043d\u0430'}</div>
+                <div style={{ color: '#808082', fontSize: 7 }}>ср. цена</div>
                 <div style={{ color: '#808082' }}>
                   <span style={{ fontSize: 8, fontWeight: 600 }}>{m.avgPrice.toLocaleString('ru')}</span>
-                  <span style={{ fontSize: 6 }}> {'\u0440\u0443\u0431'}</span>
+                  <span style={{ fontSize: 6 }}> руб</span>
                 </div>
               </div>
             </div>
@@ -207,7 +202,7 @@ function ParetoCard({ labels, costData, cumulativeData }) {
         color: 'rgba(0,0,0,0.8)', fontSize: 10, fontWeight: 500,
         textTransform: 'uppercase', letterSpacing: '.03em', flexShrink: 0,
       }}>
-        {'\u0421\u0442\u0440\u0443\u043a\u0442\u0443\u0440\u0430 \u0441\u0435\u0431\u0435\u0441\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u0438 \u043f\u0440\u043e\u0434\u0430\u0436 \u043f\u043e \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043c\u0430\u043c'}
+        Структура себестоимости продаж по материалам
       </div>
       <div style={{ flex: 1, padding: '0 20px 8px 38px', minHeight: 0 }}>
         <ParetoChart labels={labels} costData={costData} cumulativeData={cumulativeData} />
@@ -215,15 +210,15 @@ function ParetoCard({ labels, costData, cumulativeData }) {
       <div style={{ padding: '0 16px 10px 38px', display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#808082' }} />
-          <span style={{ fontSize: 7, color: '#555' }}>{'\u0432\u043a\u043b\u0430\u0434 \u0432 \u0441\u0435\u0431\u0435\u0441\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c'}</span>
+          <span style={{ fontSize: 7, color: '#555' }}>вклад в себестоимость</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
           <div style={{ width: 16, height: 2, background: '#bf3580' }} />
-          <span style={{ fontSize: 7, color: '#555' }}>{'\u043d\u0430\u043a\u043e\u043f\u043b\u0435\u043d\u043d\u0430\u044f \u0434\u043e\u043b\u044f'}</span>
+          <span style={{ fontSize: 7, color: '#555' }}>накопленная доля</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
           <div style={{ width: 16, height: 0, borderTop: '1.5px dashed #e53935' }} />
-          <span style={{ fontSize: 7, color: '#555' }}>{'\u043f\u043e\u0440\u043e\u0433\u043e\u0432\u043e\u0435 \u0437\u043d\u0430\u0447\u0435\u043d\u0438\u0435'}</span>
+          <span style={{ fontSize: 7, color: '#555' }}>пороговое значение</span>
         </div>
       </div>
     </div>
@@ -251,8 +246,7 @@ function DonutCard({ data, animate }) {
         color: 'rgba(255,255,255,0.8)', fontSize: 9, fontWeight: 500,
         textTransform: 'uppercase', letterSpacing: '.03em', flexShrink: 0,
       }}>
-        {'\u0421\u0442\u0440\u0443\u043a\u0442\u0443\u0440\u0430 \u0437\u0430\u043a\u0443\u043f\u043e\u0447\u043d\u044b\u0445 \u0440\u0430\u0441\u0445\u043e\u0434\u043e\u0432'}<br />
-        {'\u043f\u043e \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044f\u043c \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u043e\u0432'}
+        Структура закупочных расходов<br />по категориям материалов
       </div>
       <div style={{ flex: 1, padding: '4px 40px', minHeight: 0 }}>
         <DonutChartCJ data={data} total={sum.toFixed(2).replace('.', ',')} />
@@ -289,7 +283,7 @@ function DonutCard({ data, animate }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.5)' }}>{pct}%</span>
                 <span style={{ fontSize: 9, color: '#ea529b', fontWeight: 600 }}>
-                  <Num value={d.value} decimals={2} /> {'\u043c\u043b\u043d \u0440\u0443\u0431'}
+                  <Num value={d.value} decimals={2} /> млн руб
                 </span>
               </div>
             </div>
@@ -305,9 +299,9 @@ function KpiCard({ kpi, animate }) {
   const [hoveredKpi, setHoveredKpi] = useState(null)
 
   const kpis = [
-    { key: 'hhi',       label: '\u0418\u043d\u0434\u0435\u043a\u0441 \u043a\u043e\u043d\u0446\u0435\u043d\u0442\u0440\u0430\u0446\u0438\u0438 (HHI)', value: kpi.hhi,       unit: '' },
-    { key: 'top2dep',   label: '\u0417\u0430\u0432\u0438\u0441\u0438\u043c\u043e\u0441\u0442\u044c \u043e\u0442 \u0422\u041e\u041f-2',                  value: kpi.top2dep,   unit: ' %' },
-    { key: 'importDep', label: '\u0418\u043c\u043f\u043e\u0440\u0442\u043e\u0437\u0430\u0432\u0438\u0441\u0438\u043c\u043e\u0441\u0442\u044c',          value: kpi.importDep, unit: ' %' },
+    { key: 'hhi',       label: 'Индекс концентр��ции (HHI)', value: kpi.hhi,       unit: '' },
+    { key: 'top2dep',   label: 'Зависимость от ТОП-2',      value: kpi.top2dep,   unit: ' %' },
+    { key: 'importDep', label: 'Импортозависимость',         value: kpi.importDep, unit: ' %' },
   ]
 
   return (
@@ -324,7 +318,7 @@ function KpiCard({ kpi, animate }) {
         color: 'rgba(255,255,255,0.8)', fontSize: 9, fontWeight: 500,
         textTransform: 'uppercase', letterSpacing: '.03em', marginBottom: 10,
       }}>
-        {'\u041a\u043b\u044e\u0447\u0435\u0432\u044b\u0435 \u043f\u043e\u043a\u0430\u0437\u0430\u0442\u0435\u043b\u0438 \u043a\u043e\u043d\u0446\u0435\u043d\u0442\u0440\u0430\u0446\u0438\u0438 \u0437\u0430\u043a\u0443\u043f\u043e\u043a'}
+        Ключевые показатели концентрации закупок
       </div>
       <div style={{ display: 'flex', gap: 16 }}>
         {kpis.map(k => (
@@ -409,7 +403,7 @@ export default function CostDriversPage({ onBack }) {
           </svg>
         </button>
         <div style={{ color: '#000', fontSize: 17, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-.02em' }}>
-          {'\u0414\u0440\u0430\u0439\u0432\u0435\u0440\u044b \u0441\u0435\u0431\u0435\u1541\u0438\u043c\u043e\u0441\u0442\u0438 \u0438 \u043a\u043e\u043d\u0446\u0435\u043d\u0442\u0440\u0430\u043c\u0438\u0437\u0430\u0446\u0438\u0438 \u0437\u0430\u0442\u0440\u0430\u0442'}
+          Драйверы себестоимости и концентрация затрат
         </div>
       </div>
 
