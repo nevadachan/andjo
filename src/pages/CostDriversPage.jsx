@@ -361,7 +361,7 @@ export default function CostDriversPage({ onBack }) {
 
   return (
     <div style={{
-      width: '100%', height: '100%', background: '#f6f1f5',
+      width: '100%', height: '100%', background: '#000',
       display: 'flex', flexDirection: 'column',
       padding: '8px 20px 8px', boxSizing: 'border-box', overflow: 'hidden',
     }}>
