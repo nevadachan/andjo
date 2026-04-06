@@ -299,7 +299,7 @@ function KpiCard({ kpi, animate }) {
   const [hoveredKpi, setHoveredKpi] = useState(null)
 
   const kpis = [
-    { key: 'hhi',       label: 'Индекс концентр��ции (HHI)', value: kpi.hhi,       unit: '' },
+    { key: 'hhi',       label: 'Индекс концентрации (HHI)', value: kpi.hhi,       unit: '' },
     { key: 'top2dep',   label: 'Зависимость от ТОП-2',      value: kpi.top2dep,   unit: ' %' },
     { key: 'importDep', label: 'Импортозависимость',         value: kpi.importDep, unit: ' %' },
   ]
