@@ -3,12 +3,44 @@ import { DATASETS, FILTER_OPTIONS, DEFAULT_DATASET } from '../data/costDrivers'
 import ParetoChart from '../components/charts/ParetoChart'
 import DonutChartCJ from '../components/charts/DonutChartCJ'
 
+// ── Animated counter ──────────────────────────────────────────────────────────
+function useCountUp(target, duration = 600) {
+  const [val, setVal] = useState(0)
+  useEffect(() => {
+    setVal(0)
+    const num = parseFloat(String(target).replace(',', '.')) || 0
+    const start = performance.now()
+    const tick = now => {
+      const p = Math.min((now - start) / duration, 1)
+      const ease = 1 - Math.pow(1 - p, 3)
+      setVal(ease * num)
+      if (p < 1) requestAnimationFrame(tick)
+      else setVal(num)
+    }
+    requestAnimationFrame(tick)
+  }, [target])
+  return val
+}
+
+function Num({ value, decimals = 2 }) {
+  const v = useCountUp(value)
+  const display = decimals === 0 ? Math.round(v) : v.toFixed(decimals).replace('.', ',')
+  const final = decimals === 0
+    ? String(Math.round(value))
+    : value.toFixed(decimals).replace('.', ',')
+  return (
+    <span style={{ display: 'inline-block', minWidth: `${final.length}ch` }}>
+      {display}
+    </span>
+  )
+}
+
 const fmtDev = (n) => {
   const abs = Math.abs(n).toFixed(2).replace('.', ',')
   return (n > 0 ? '+' : n < 0 ? '\u2212' : '') + abs
 }
 
-// Filter pill
+// ── Filter pill ───────────────────────────────────────────────────────────────
 function FilterPill({ label, value, options, open, onToggle, onSelect }) {
   return (
     <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -68,7 +100,7 @@ function FilterPill({ label, value, options, open, onToggle, onSelect }) {
   )
 }
 
-// CostFilters
+// ── CostFilters ───────────────────────────────────────────────────────────────
 function CostFilters({ period, category, supplier, onPeriodChange, onCategoryChange, onSupplierChange }) {
   const [openPill, setOpenPill] = useState(null)
 
@@ -101,15 +133,12 @@ function CostFilters({ period, category, supplier, onPeriodChange, onCategoryCha
   )
 }
 
-// Deviation strip
+// ── Deviation strip ───────────────────────────────────────────────────────────
 function DeviationStrip({ materials, animate }) {
   const [hovered, setHovered] = useState(null)
 
   return (
-    <div style={{
-      background: '#fff', borderRadius: 12,
-      overflow: 'hidden', flexShrink: 0,
-    }}>
+    <div style={{ background: '#fff', borderRadius: 12, overflow: 'hidden', flexShrink: 0 }}>
       <div style={{
         padding: '8px 12px 0',
         color: 'rgba(0,0,0,0.7)', fontSize: 9, fontWeight: 500,
@@ -134,14 +163,13 @@ function DeviationStrip({ materials, animate }) {
             onMouseEnter={() => setHovered(m.id)}
             onMouseLeave={() => setHovered(null)}
           >
-            <div style={{
-              color: '#808082', fontSize: 8,
-              overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
-            }}>
+            <div style={{ color: '#808082', fontSize: 8, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
               {m.label}
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', lineHeight: 1, marginTop: 2 }}>
-              <span style={{ fontSize: 20, fontWeight: 700, color: m.deviationColor }}>{fmtDev(m.deviation)}</span>
+              <span style={{ fontSize: 20, fontWeight: 700, color: m.deviationColor }}>
+                <Num value={Math.abs(m.deviation)} decimals={2} />
+              </span>
               <span style={{ color: '#808082', fontSize: 10, marginLeft: 1 }}>%</span>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
@@ -167,13 +195,12 @@ function DeviationStrip({ materials, animate }) {
   )
 }
 
-// Pareto card
+// ── Pareto card ───────────────────────────────────────────────────────────────
 function ParetoCard({ labels, costData, cumulativeData }) {
   return (
     <div style={{
       flex: 1, borderRadius: 15, background: '#fff',
-      overflow: 'hidden', display: 'flex', flexDirection: 'column',
-      minHeight: 0,
+      overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0,
     }}>
       <div style={{
         padding: '10px 16px 4px',
@@ -203,7 +230,7 @@ function ParetoCard({ labels, costData, cumulativeData }) {
   )
 }
 
-// Donut card
+// ── Donut card ────────────────────────────────────────────────────────────────
 function DonutCard({ data, animate }) {
   const [hoveredItem, setHoveredItem] = useState(null)
   const sum = data.reduce((acc, d) => acc + d.value, 0)
@@ -222,8 +249,7 @@ function DonutCard({ data, animate }) {
       <div style={{
         padding: '12px 13px 6px',
         color: 'rgba(255,255,255,0.8)', fontSize: 9, fontWeight: 500,
-        textTransform: 'uppercase', letterSpacing: '.03em',
-        flexShrink: 0,
+        textTransform: 'uppercase', letterSpacing: '.03em', flexShrink: 0,
       }}>
         {'\u0421\u0442\u0440\u0443\u043a\u0442\u0443\u0440\u0430 \u0437\u0430\u043a\u0443\u043f\u043e\u0447\u043d\u044b\u0445 \u0440\u0430\u0441\u0445\u043e\u0434\u043e\u0432'}<br />
         {'\u043f\u043e \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044f\u043c \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u043e\u0432'}
@@ -263,7 +289,7 @@ function DonutCard({ data, animate }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.5)' }}>{pct}%</span>
                 <span style={{ fontSize: 9, color: '#ea529b', fontWeight: 600 }}>
-                  {d.value.toFixed(2).replace('.', ',')} {'\u043c\u043b\u043d \u0440\u0443\u0431'}
+                  <Num value={d.value} decimals={2} /> {'\u043c\u043b\u043d \u0440\u0443\u0431'}
                 </span>
               </div>
             </div>
@@ -274,7 +300,7 @@ function DonutCard({ data, animate }) {
   )
 }
 
-// KPI card
+// ── KPI card ──────────────────────────────────────────────────────────────────
 function KpiCard({ kpi, animate }) {
   const [hoveredKpi, setHoveredKpi] = useState(null)
 
@@ -287,8 +313,7 @@ function KpiCard({ kpi, animate }) {
   return (
     <div style={{
       flexShrink: 0, height: 148, borderRadius: 15, background: '#111118',
-      overflow: 'hidden', padding: '12px 13px',
-      position: 'relative',
+      overflow: 'hidden', padding: '12px 13px', position: 'relative',
     }}>
       <div style={{
         position: 'absolute', bottom: -40, right: -40, width: 160, height: 160,
@@ -319,7 +344,8 @@ function KpiCard({ kpi, animate }) {
               transformOrigin: 'left center',
               transition: 'transform 0.2s ease',
             }}>
-              {k.value}{k.unit}
+              <Num value={parseFloat(String(k.value).replace(',', '.')) || 0} decimals={typeof k.value === 'number' && Number.isInteger(k.value) ? 0 : 2} />
+              {k.unit}
             </div>
           </div>
         ))}
@@ -328,7 +354,7 @@ function KpiCard({ kpi, animate }) {
   )
 }
 
-// Main page
+// ── Main page ─────────────────────────────────────────────────────────────────
 export default function CostDriversPage({ onBack }) {
   const [visible, setVisible] = useState(false)
   const [period, setPeriod]     = useState(DEFAULT_DATASET.period)
@@ -364,28 +390,25 @@ export default function CostDriversPage({ onBack }) {
       width: '100%', height: '100%', background: '#f6f1f5',
       display: 'flex', flexDirection: 'column',
       padding: '8px 20px 8px', boxSizing: 'border-box', overflow: 'hidden',
+      opacity: visible ? 1 : 0,
+      transform: visible ? 'translateY(0)' : 'translateY(30px)',
+      transition: 'opacity .5s ease, transform .5s ease',
     }}>
       {/* Header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 14,
-        flexShrink: 0, marginBottom: 6,
-      }}>
-      <button
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0, marginBottom: 6 }}>
+        <button
           onClick={e => { e.stopPropagation(); onBack() }}
           style={{
-           width: 30, height: 30, borderRadius: 15, border: 'none',
-           background: '#F8D7E0', cursor: 'pointer', display: 'flex',
+            width: 30, height: 30, borderRadius: 15, border: 'none',
+            background: '#F8D7E0', cursor: 'pointer', display: 'flex',
             alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}
-         >
-  <svg width={14} height={14} viewBox="0 0 14 14" fill="none">
-    <path d="M9 2L4 7L9 12" stroke="#bf3580" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-</button>
-        <div style={{
-          color: '#000', fontSize: 17, fontWeight: 700,
-          textTransform: 'uppercase', letterSpacing: '-.02em',
-        }}>
+        >
+          <svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+            <path d="M9 2L4 7L9 12" stroke="#bf3580" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <div style={{ color: '#000', fontSize: 17, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-.02em' }}>
           {'\u0414\u0440\u0430\u0439\u0432\u0435\u0440\u044b \u0441\u0435\u0431\u0435\u1541\u0438\u043c\u043e\u0441\u0442\u0438 \u0438 \u043a\u043e\u043d\u0446\u0435\u043d\u0442\u0440\u0430\u043c\u0438\u0437\u0430\u0446\u0438\u0438 \u0437\u0430\u0442\u0440\u0430\u0442'}
         </div>
       </div>
@@ -404,13 +427,10 @@ export default function CostDriversPage({ onBack }) {
 
       {/* Main grid */}
       <div style={{
-        flex: 1,
-        display: 'grid',
+        flex: 1, display: 'grid',
         gridTemplateColumns: '1fr 389px',
         gridTemplateRows: '1fr',
-        gap: 10,
-        minHeight: 0,
-        overflow: 'hidden',
+        gap: 10, minHeight: 0, overflow: 'hidden',
       }}>
         {/* Left column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minHeight: 0, overflow: 'hidden' }}>
