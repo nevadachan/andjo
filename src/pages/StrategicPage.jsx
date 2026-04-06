@@ -414,16 +414,18 @@ export default function StrategicPage({ onBack }) {
           display: 'flex', alignItems: 'center', gap: 10,
           flexShrink: 0, height: 34, marginBottom: 4,
         }}>
-          <div
-            onClick={onBack}
+         <button
+            onClick={e => { e.stopPropagation(); onBack() }}
             style={{
-              width: 28, height: 28, borderRadius: '50%', background: '#f8d7e0',
-              flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#000', fontSize: 14, cursor: 'pointer', transition: 'transform .2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.15)' }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
-          >←</div>
+            width: 30, height: 30, borderRadius: 15, border: 'none',
+            background: '#F8D7E0', cursor: 'pointer', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        }}
+         >
+  <svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+    <path d="M9 2L4 7L9 12" stroke="#bf3580" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+           </button>
           <div style={{
             color: '#000', fontSize: 20, fontWeight: 400,
             textTransform: 'uppercase', letterSpacing: '-0.022em',
