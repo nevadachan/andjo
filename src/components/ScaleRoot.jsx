@@ -3,14 +3,14 @@ import React, { useEffect, useState } from 'react'
 const DESIGN_W = 1280
 const DESIGN_H = 720
 
-export default function ScaleRoot({ children }) {
+export default function ScaleRoot({ children, bg = '#000' }) {
   const [scale, setScale] = useState(1)
 
   useEffect(() => {
     const calc = () => {
       const scaleX = window.innerWidth  / DESIGN_W
       const scaleY = window.innerHeight / DESIGN_H
-      setScale(Math.max(0.5, Math.max(scaleX, scaleY))) 
+      setScale(Math.max(0.5, Math.min(scaleX, scaleY)))
     }
     calc()
     window.addEventListener('resize', calc)
@@ -24,7 +24,7 @@ export default function ScaleRoot({ children }) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: '#f6f1f5',
+      background: bg,
       overflow: 'hidden',
     }}>
       <div style={{
