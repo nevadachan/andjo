@@ -89,10 +89,13 @@ function Card({ title, children, style }) {
 // ── Deviation strip ───────────────────────────────────────────────────────────
 function DeviationStrip({ suppliers }) {
   return (
-    <Card title="Отклонение цены от средней закупочной цены" style={{ flexShrink: 0 }}>
+    <Card
+      title="Отклонение цены поставщика от средней закупочной цены по материалу"
+      style={{ height: '100%' }}
+    >
       <div style={{
         display: 'flex', padding: '4px 10px 10px',
-        gap: 4, overflowX: 'auto',
+        gap: 4, overflowX: 'auto', flex: 1,
       }}>
         {suppliers.map(s => {
           const pos = s.deviation >= 0
@@ -100,22 +103,22 @@ function DeviationStrip({ suppliers }) {
           return (
             <div key={s.id} style={{
               flex: 1, minWidth: 80, padding: '5px 7px',
-              borderRadius: 8, background: '#fafafa',
-              border: '1px solid #f0f0f0',
+              display: 'flex', flexDirection: 'column', justifyContent: 'center',
             }}>
               <div style={{ fontSize: 8, color: '#888', marginBottom: 2 }}>{s.label}</div>
-              <div style={{ fontSize: 13, fontWeight: 700, color, lineHeight: 1 }}>
-                {pos ? '+' : ''}{s.deviation.toFixed(2)}%
+              <div style={{ fontSize: 20, fontWeight: 700, color, lineHeight: 1 }}>
+                {pos ? '+' : ''}{s.deviation.toFixed(2)}
+                <span style={{ fontSize: 12, fontWeight: 400 }}> %</span>
               </div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 3 }}>
+              <div style={{ display: 'flex', gap: 12, marginTop: 5 }}>
                 <div>
-                  <div style={{ fontSize: 7, color: '#aaa' }}>объём</div>
-                  <div style={{ fontSize: 8, color: '#333' }}>{s.volume.toLocaleString('ru')} шт</div>
+                  <div style={{ fontSize: 7, color: '#aaa' }}>объем</div>
+                  <div style={{ fontSize: 8, color: '#333' }}>{s.volume.toLocaleString('ru')}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 7, color: '#aaa' }}>перепл.</div>
+                  <div style={{ fontSize: 7, color: '#aaa' }}>переплата</div>
                   <div style={{ fontSize: 8, color }}>
-                    {s.overpay >= 0 ? '+' : ''}{s.overpay.toFixed(1)} тр
+                    {s.overpay >= 0 ? '+' : ''}{s.overpay.toFixed(2)}
                   </div>
                 </div>
               </div>
@@ -127,34 +130,27 @@ function DeviationStrip({ suppliers }) {
   )
 }
 
-// ── Reliability strip ─────────────────────────────────────────────────────────
+// ── Reliability strip ──────────────────────────────────────────────────��──────
 function ReliabilityStrip({ suppliers }) {
   return (
-    <Card title="Индекс надёжности поставщика" style={{ flexShrink: 0 }}>
+    <Card title="Индекс надёжности поставщика" style={{ height: '100%' }}>
       <div style={{
         display: 'flex', padding: '4px 10px 10px',
-        gap: 4,
+        gap: 4, flex: 1,
       }}>
         {suppliers.map(s => {
           const v = s.reliability
-          const barColor = v >= 92 ? '#00b473' : v >= 85 ? '#ffa617' : '#e84342'
           return (
-            <div key={s.id} style={{ flex: 1, minWidth: 70 }}>
+            <div key={s.id} style={{
+              flex: 1, minWidth: 70,
+              display: 'flex', flexDirection: 'column', justifyContent: 'center',
+            }}>
               <div style={{ fontSize: 8, color: '#888', marginBottom: 2 }}>{s.label}</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#000', lineHeight: 1 }}>
-                {v.toFixed(1)}%
+              <div style={{ fontSize: 20, fontWeight: 700, color: '#000', lineHeight: 1 }}>
+                {v.toFixed(2)}
+                <span style={{ fontSize: 12, fontWeight: 400 }}> %</span>
               </div>
-              <div style={{
-                marginTop: 4, height: 3, borderRadius: 2,
-                background: '#eee', overflow: 'hidden',
-              }}>
-                <div style={{
-                  width: `${v}%`, height: '100%',
-                  background: barColor, borderRadius: 2,
-                  transition: 'width .4s',
-                }} />
-              </div>
-              <div style={{ fontSize: 7, color: '#aaa', marginTop: 3, lineHeight: 1.3 }}>
+              <div style={{ fontSize: 7, color: '#aaa', marginTop: 4, lineHeight: 1.3 }}>
                 {s.reliabilityNote}
               </div>
             </div>
@@ -165,10 +161,8 @@ function ReliabilityStrip({ suppliers }) {
   )
 }
 
-// ── Dark donut card ───────────────────────────────────────────────────────────
+// ── Donut card (white background, horizontal layout) ──────────────────────────
 function DonutCard({ segments, totalAmount }) {
-  const [hoveredItem, setHoveredItem] = useState(null)
-
   const chartData = segments.map(s => ({
     label: s.label,
     value: s.pct,
@@ -180,92 +174,57 @@ function DonutCard({ segments, totalAmount }) {
     : ''
 
   return (
-    <div style={{
-      borderRadius: 15, background: '#111118',
-      overflow: 'hidden', display: 'flex', flexDirection: 'column',
-      minHeight: 0, position: 'relative',
-      /* Пончик занимает оставшееся место в grid-ячейке */
-      height: '100%',
-    }}>
-      {/* glow blob */}
+    <Card title="Структура поставщиков" style={{ height: '100%' }}>
       <div style={{
-        position: 'absolute', top: -60, right: -60, width: 200, height: 200,
-        borderRadius: '50%', background: 'rgba(191,53,128,0.35)',
-        filter: 'blur(60px)', pointerEvents: 'none', zIndex: 0,
-      }} />
-
-      <div style={{
-        position: 'relative', zIndex: 1,
-        padding: '10px 13px 4px',
-        color: 'rgba(255,255,255,0.8)', fontSize: 9, fontWeight: 600,
-        textTransform: 'uppercase', letterSpacing: '.03em', flexShrink: 0,
+        flex: 1, minHeight: 0,
+        display: 'flex', alignItems: 'center',
+        padding: '0 14px 10px',
+        gap: 16,
       }}>
-        Структура поставщиков
-      </div>
-
-      {/* Donut + Legend в горизонтальном layout */}
-      <div style={{
-        flex: 1, minHeight: 0, display: 'flex',
-        position: 'relative', zIndex: 1,
-        padding: '0 10px 10px',
-        gap: 6,
-      }}>
-        {/* Donut — квадратный контейнер, ровно по высоте */}
+        {/* Donut — square, sized by available height */}
         <div style={{
           flex: '0 0 auto',
           height: '100%',
           aspectRatio: '1 / 1',
           minWidth: 0,
-          maxHeight: '100%',
+          maxWidth: '50%',
         }}>
           <DonutChartCJ data={chartData} total={totalStr} />
         </div>
 
-        {/* Legend — справа от пончика */}
+        {/* Legend — right side */}
         <div style={{
           flex: 1, minWidth: 0,
           display: 'flex', flexDirection: 'column',
           justifyContent: 'center',
-          overflow: 'hidden',
+          gap: 6,
         }}>
           {segments.map(s => (
             <div
               key={s.id}
-              onMouseEnter={() => setHoveredItem(s.id)}
-              onMouseLeave={() => setHoveredItem(null)}
               style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                marginBottom: 2, padding: '2px 5px', borderRadius: 6,
-                background: hoveredItem === s.id ? 'rgba(255,255,255,0.07)' : 'transparent',
-                transition: 'background 0.15s', cursor: 'default',
+                display: 'flex', alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 10,
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                 <div style={{
-                  width: 7, height: 7, borderRadius: '50%', background: s.color,
-                  border: s.color === '#f8d7e0' || s.color === '#ffffff' ? '1px solid #555' : 'none',
+                  width: 8, height: 8, borderRadius: '50%', background: s.color,
                   flexShrink: 0,
                 }} />
-                <span style={{
-                  fontSize: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                  color: hoveredItem === s.id ? '#fff' : 'rgba(255,255,255,0.75)',
-                }}>
+                <span style={{ fontSize: 9, color: '#333', whiteSpace: 'nowrap' }}>
                   {s.label}
                 </span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.45)' }}>
-                  {s.pct.toFixed(1)}%
-                </span>
-                <span style={{ fontSize: 8, color: '#ea529b', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                  {(s.amount ?? s.value).toFixed(2).replace('.', ',')} млн
-                </span>
-              </div>
+              <span style={{ fontSize: 9, color: '#333', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                {(s.amount ?? s.value).toFixed(2).replace('.', ',')} млн руб
+              </span>
             </div>
           ))}
         </div>
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -323,6 +282,19 @@ export default function DashboardPage({ onBack }) {
   const normDefect = 3
   const normReaction = 12
 
+  /* ══════════════════════════════════════════════════════════════════════════
+     LAYOUT — точно по эталону (2 колонки × 3 строки):
+
+     ┌──────────────────────┬──────────────────────┐
+     │   Deviation strip    │   Reliability strip   │  row 1 (auto)
+     ├──────────────────────┼──────────────────────┤
+     │   Price chart        │   Defect bar chart    │  row 2 (1fr)
+     ├──────────────────────┼──────────────────────┤
+     │   Reaction bar chart │   Donut card          │  row 3 (1fr)
+     └──────────────────────┴──────────────────────┘
+            ~55%                    ~45%
+     ══════════════════════════════════════════════════════════════════════════ */
+
   return (
     <div
       style={{
@@ -373,97 +345,65 @@ export default function DashboardPage({ onBack }) {
         ))}
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          ГЛАВНАЯ СЕТКА — 6 строк × 2 колонки
-          
-          Левая колонка (60%):              Правая колонка (40%):
-          ┌─────────────────────┐           ┌─────────────────────┐
-          │  Deviation strip    │  row 1    │  Defect bar chart   │
-          ├─────────────────────┤           │                     │
-          │                     │  row 2    ├─────────────────��───┤
-          │  Price chart        │           │  Reaction bar chart │
-          │                     │  row 3    │                     │
-          ├─────────────────────┤           ├─────────────────────┤
-          │  Reliability strip  │  row 4    │  Donut card         │
-          └─────────────────────┘           │                     │
-                                            └─────────────────────┘
-          ══════════════════════════════════════════════════════════════════════ */}
+      {/* ── Main 2×3 grid ── */}
       <div style={{
         flex: 1, minHeight: 0,
         display: 'grid',
-        gridTemplateColumns: '1.1fr 0.9fr',
-        gridTemplateRows: 'auto 1fr auto',
+        gridTemplateColumns: '55fr 45fr',
+        gridTemplateRows: 'auto 1fr 1fr',
         gap: 10,
         overflow: 'hidden',
       }}>
-        {/* Row 1, Col 1 — Deviation */}
-        <div style={{ gridColumn: 1, gridRow: 1 }}>
-          <DeviationStrip suppliers={suppliers} />
-        </div>
 
-        {/* Row 2, Col 1 — Price chart (растягивается) */}
-        <div style={{ gridColumn: 1, gridRow: 2, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <Card title="Сравнительный анализ закупочных цен у поставщиков, руб" style={{ flex: 1, minHeight: 0 }}>
-            <div style={{ flex: 1, padding: '0 8px', minHeight: 0 }}>
-              <PriceChart suppliers={suppliersWithPrice} avgPrice={avgPrice} />
-            </div>
-            <LegendRow items={[
-              { label: 'средняя закупочная цена', color: '#e84342', type: 'dash' },
-              { label: 'цена у поставщиков', color: '#808082', type: 'circle' },
-            ]} />
-          </Card>
-        </div>
+        {/* ── ROW 1: Deviation (left) + Reliability (right) ── */}
+        <DeviationStrip suppliers={suppliers} />
+        <ReliabilityStrip suppliers={suppliers} />
 
-        {/* Row 3, Col 1 — Reliability */}
-        <div style={{ gridColumn: 1, gridRow: 3 }}>
-          <ReliabilityStrip suppliers={suppliers} />
-        </div>
+        {/* ── ROW 2: Price chart (left) + Defect chart (right) ── */}
+        <Card title="Сравнительный анализ закупочных цен у поставщиков, руб" style={{ minHeight: 0 }}>
+          <div style={{ flex: 1, padding: '0 8px', minHeight: 0 }}>
+            <PriceChart suppliers={suppliersWithPrice} avgPrice={avgPrice} />
+          </div>
+          <LegendRow items={[
+            { label: 'средняя закупочная цена', color: '#e84342', type: 'dash' },
+            { label: 'цена у поставщиков', color: '#808082', type: 'circle' },
+          ]} />
+        </Card>
 
-        {/* Row 1-2, Col 2 — Defect + Reaction (каждый по 50% гибкой области) */}
-        <div style={{
-          gridColumn: 2, gridRow: '1 / 3',
-          display: 'flex', flexDirection: 'column', gap: 10,
-          minHeight: 0, overflow: 'hidden',
-        }}>
-          {/* Defect */}
-          <Card title="Уровень брака по поставщикам, %" style={{ flex: 1, minHeight: 0 }}>
-            <div style={{ flex: 1, padding: '0 8px', minHeight: 0 }}>
-              <BarChart
-                suppliers={suppliers}
-                getValue={s => s.defectRate ?? 0}
-                colorVariant="pink"
-                normLine={normDefect}
-                normLabel={`норма ${normDefect}%`}
-              />
-            </div>
-            <LegendRow items={[
-              { label: 'уровень брака', color: '#bf3580', type: 'circle' },
-              { label: 'допустимая норма', color: '#e84342', type: 'dash' },
-            ]} />
-          </Card>
+        <Card title="Уровень брака по поставщикам, %" style={{ minHeight: 0 }}>
+          <div style={{ flex: 1, padding: '0 8px', minHeight: 0 }}>
+            <BarChart
+              suppliers={suppliers}
+              getValue={s => s.defectRate ?? 0}
+              colorVariant="pink"
+              normLine={normDefect}
+              normLabel={`норма ${normDefect}%`}
+            />
+          </div>
+          <LegendRow items={[
+            { label: 'уровень брака', color: '#bf3580', type: 'circle' },
+            { label: 'допустимая норма', color: '#e84342', type: 'dash' },
+          ]} />
+        </Card>
 
-          {/* Reaction */}
-          <Card title="Скорость реакции поставщика на запросы, часы" style={{ flex: 1, minHeight: 0 }}>
-            <div style={{ flex: 1, padding: '0 8px', minHeight: 0 }}>
-              <BarChart
-                suppliers={suppliers}
-                getValue={s => s.reactionTime ?? 0}
-                colorVariant="grey"
-                normLine={normReaction}
-                normLabel={`норма ${normReaction}ч`}
-              />
-            </div>
-            <LegendRow items={[
-              { label: 'время реакции', color: '#808082', type: 'circle' },
-              { label: 'допустимая норма', color: '#e84342', type: 'dash' },
-            ]} />
-          </Card>
-        </div>
+        {/* ── ROW 3: Reaction chart (left) + Donut (right) ── */}
+        <Card title="Скорость реакции поставщика на запросы, часы" style={{ minHeight: 0 }}>
+          <div style={{ flex: 1, padding: '0 8px', minHeight: 0 }}>
+            <BarChart
+              suppliers={suppliers}
+              getValue={s => s.reactionTime ?? 0}
+              colorVariant="grey"
+              normLine={normReaction}
+              normLabel={`норма ${normReaction}ч`}
+            />
+          </div>
+          <LegendRow items={[
+            { label: 'время реакции', color: '#808082', type: 'circle' },
+            { label: 'допустимая норма', color: '#e84342', type: 'dash' },
+          ]} />
+        </Card>
 
-        {/* Row 3, Col 2 — Donut */}
-        <div style={{ gridColumn: 2, gridRow: 3, minHeight: 0 }}>
-          <DonutCard segments={donutSegments} totalAmount={totalAmount} />
-        </div>
+        <DonutCard segments={donutSegments} totalAmount={totalAmount} />
       </div>
     </div>
   )
