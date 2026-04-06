@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import Chart from 'chart.js/auto'
 
-export default function DonutChartCJ({ data, total }) {
+export default function DonutChartCJ({ data, total, centerColor = '#fff' }) {
   const containerRef = useRef(null)
   const canvasRef = useRef(null)
   const chartRef = useRef(null)
@@ -135,7 +135,7 @@ export default function DonutChartCJ({ data, total }) {
       }}>
         <div style={{ lineHeight: 1, textAlign: 'center', whiteSpace: 'nowrap' }}>
           <span style={{
-            color: '#fff',
+            color: centerColor,
             fontSize: 38, fontWeight: 700,
             fontFamily: 'Pragmatica, sans-serif',
             letterSpacing: '-0.02em',
@@ -143,7 +143,7 @@ export default function DonutChartCJ({ data, total }) {
             {intPart}
           </span>
           <span style={{
-            color: '#fff',
+            color: centerColor,
             fontSize: 18, fontWeight: 700,
             fontFamily: 'Pragmatica, sans-serif',
           }}>
@@ -151,7 +151,7 @@ export default function DonutChartCJ({ data, total }) {
           </span>
         </div>
         <div style={{
-          color: '#fff',
+          color: centerColor,
           fontSize: 16,
           fontFamily: 'Pragmatica, sans-serif',
           fontWeight: 400, marginTop: 1,
