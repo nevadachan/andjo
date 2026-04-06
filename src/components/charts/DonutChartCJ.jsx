@@ -16,7 +16,6 @@ export default function DonutChartCJ({ data, total }) {
     if (!canvas) return
     const ctx = canvas.getContext('2d')
 
-    /* Get the REAL device pixel ratio for crisp rendering */
     const dpr = Math.max(window.devicePixelRatio || 1, 2)
 
     const percentLabelPlugin = {
@@ -92,15 +91,9 @@ export default function DonutChartCJ({ data, total }) {
         rotation: -90,
         responsive: true,
         maintainAspectRatio: true,
-        /* ═══ KEY FIX: force high-res rendering ═══ */
         devicePixelRatio: dpr,
         layout: {
-          padding: {
-            top: 26,
-            bottom: 26,
-            left: 50,
-            right: 50,
-          },
+          padding: { top: 26, bottom: 26, left: 50, right: 50 },
         },
         animation: { duration: 500, easing: 'easeOutQuart' },
         plugins: {
@@ -142,21 +135,24 @@ export default function DonutChartCJ({ data, total }) {
       }}>
         <div style={{ lineHeight: 1, textAlign: 'center', whiteSpace: 'nowrap' }}>
           <span style={{
-            color: '#000', fontSize: 38, fontWeight: 700,
+            color: '#fff',
+            fontSize: 38, fontWeight: 700,
             fontFamily: 'Pragmatica, sans-serif',
             letterSpacing: '-0.02em',
           }}>
             {intPart}
           </span>
           <span style={{
-            color: '#000', fontSize: 18, fontWeight: 700,
+            color: '#fff',
+            fontSize: 18, fontWeight: 700,
             fontFamily: 'Pragmatica, sans-serif',
           }}>
             ,{decPart}
           </span>
         </div>
         <div style={{
-          color: '#000', fontSize: 16,
+          color: '#fff',
+          fontSize: 16,
           fontFamily: 'Pragmatica, sans-serif',
           fontWeight: 400, marginTop: 1,
           letterSpacing: '0.02em',
