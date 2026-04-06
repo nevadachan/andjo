@@ -10,7 +10,7 @@ export default function ScaleRoot({ children }) {
     const calc = () => {
       const scaleX = window.innerWidth  / DESIGN_W
       const scaleY = window.innerHeight / DESIGN_H
-      setScale(Math.max(0.5, Math.min(scaleX, scaleY)))
+      setScale(Math.max(0.5, Math.max(scaleX, scaleY))) 
     }
     calc()
     window.addEventListener('resize', calc)
