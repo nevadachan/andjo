@@ -15,7 +15,7 @@ export default function App() {
   const goBack   = useCallback(() => setScreen('nav'), [])
 
   return (
-    <ScaleRoot>
+    <ScaleRoot bg={screen === 'splash' || screen === 'nav' ? '#000' : '#f6f1f5'}>
       {screen === 'splash'    && <SplashPage onEnter={goToNav} />}
       {screen === 'nav'       && <NavPage onSelectDash={goToDash} />}
       {screen === 'dashboard' && dashId === 'portfolio'  && <DashboardPage onBack={goBack} />}
