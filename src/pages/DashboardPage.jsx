@@ -374,7 +374,7 @@ export default function DashboardPage({ onBack }) {
   return (
     <div
       style={{
-        width: '100%', height: '100%', background: '#000',
+        width: '100%', height: '100%', background: '#f6f1f5',
         display: 'flex', flexDirection: 'column',
         padding: '6px 30px 10px',
         boxSizing: 'border-box', overflow: 'hidden',
