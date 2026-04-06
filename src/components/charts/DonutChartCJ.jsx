@@ -13,13 +13,30 @@ export default function DonutChartCJ({ data, total }) {
     }
 
     const canvas = canvasRef.current
-    if (!canvas) return
+    const container = containerRef.current
+    if (!canvas || !container) return
+
+    /* ═══════════════════════════════════════════════════════════
+       FIX BLURRINESS: force canvas to render at native resolution
+       ═══════════════════════════════════════════════════════════ */
+    const dpr = window.devicePixelRatio || 1
+    const rect = container.getBoundingClientRect()
+    const w = rect.width
+    const h = rect.height
+
+    // Set canvas internal resolution to match physical pixels
+    canvas.width = Math.round(w * dpr)
+    canvas.height = Math.round(h * dpr)
+    // Set display size via CSS
+    canvas.style.width = w + 'px'
+    canvas.style.height = h + 'px'
 
     const ctx = canvas.getContext('2d')
+    ctx.scale(dpr, dpr)
 
-    /* ═══════════════════════════════════════════════════════════════
+    /* ══════════════════════════��════════════════════════════════
        Custom plugin: percent labels OUTSIDE the donut ring
-       ═══════════════════════════════════════════════════════════════ */
+       ═══════════════════════════════════════════════════════════ */
     const percentLabelPlugin = {
       id: 'outerPercentLabels',
       afterDatasetsDraw(chart) {
@@ -37,18 +54,13 @@ export default function DonutChartCJ({ data, total }) {
 
           const midAngle = (arc.startAngle + arc.endAngle) / 2
           const color = data[i].color || '#333'
-
-          // Format: "37,96" + "%"
           const pctNum = data[i].value.toFixed(2).replace('.', ',')
 
-          // Distance from center to label anchor
           const gap = 12
           const labelR = outerR + gap
-
           const lx = cx + Math.cos(midAngle) * labelR
           const ly = cy + Math.sin(midAngle) * labelR
 
-          // Determine alignment based on angle quadrant
           const cosA = Math.cos(midAngle)
           let align = 'center'
           let offsetX = 0
@@ -57,15 +69,15 @@ export default function DonutChartCJ({ data, total }) {
 
           c.save()
           c.textBaseline = 'middle'
+          c.imageSmoothingEnabled = false
 
-          // Measure the number part width
+          // Measure widths
           c.font = 'bold 13px Pragmatica, Inter, system-ui, sans-serif'
           const numW = c.measureText(pctNum).width
           c.font = 'bold 9px Pragmatica, Inter, system-ui, sans-serif'
           const pctW = c.measureText('%').width
           const totalW = numW + pctW
 
-          // Calculate start X based on alignment
           let startX
           if (align === 'left') startX = lx + offsetX
           else if (align === 'right') startX = lx + offsetX - totalW
@@ -77,7 +89,7 @@ export default function DonutChartCJ({ data, total }) {
           c.textAlign = 'left'
           c.fillText(pctNum, startX, ly)
 
-          // Draw "%" right after number, smaller
+          // Draw "%"
           c.font = 'bold 9px Pragmatica, Inter, system-ui, sans-serif'
           c.fillText('%', startX + numW, ly)
 
@@ -102,9 +114,11 @@ export default function DonutChartCJ({ data, total }) {
       },
       options: {
         cutout: '64%',
-        rotation: -90,           // start from 12 o'clock
-        responsive: true,
-        maintainAspectRatio: true,
+        rotation: -90,
+        /* CRITICAL: disable Chart.js own responsive resize — we handle it manually */
+        responsive: false,
+        maintainAspectRatio: false,
+        devicePixelRatio: dpr,  /* tell Chart.js about our DPR */
         layout: {
           padding: {
             top: 22,
@@ -130,9 +144,25 @@ export default function DonutChartCJ({ data, total }) {
     })
   }, [data])
 
+  /* ═══════════════════════════════════════════════════════════
+     Rebuild on mount, data change, and container resize
+     ═══════════════════════════════════════════════════════════ */
   useEffect(() => {
     buildChart()
+
+    // Watch for container resize and rebuild with correct dimensions
+    const container = containerRef.current
+    if (!container) return
+
+    const ro = new ResizeObserver(() => {
+      // Debounce slightly to avoid excessive rebuilds
+      clearTimeout(ro._timer)
+      ro._timer = setTimeout(buildChart, 80)
+    })
+    ro.observe(container)
+
     return () => {
+      ro.disconnect()
       if (chartRef.current) {
         chartRef.current.destroy()
         chartRef.current = null
@@ -140,11 +170,9 @@ export default function DonutChartCJ({ data, total }) {
     }
   }, [buildChart, total])
 
-  /* ════════════════════════════════════════���══════════════════════
+  /* ═══════════════════════════════════════════════════════════
      Center label: "52,00 млн руб"
-     Figma: 52 = fontSize 40 bold, ,00 = fontSize 20 bold,
-            млн руб = fontSize 20 regular
-     ═══════════════════════════════════════════════════════════════ */
+     ═══════════════════════════════════════════════════════════ */
   const renderCenter = () => {
     if (!total) return null
     const parts = total.split(',')
@@ -190,9 +218,22 @@ export default function DonutChartCJ({ data, total }) {
   return (
     <div
       ref={containerRef}
-      style={{ position: 'relative', width: '100%', height: '100%' }}
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        /* Prevent sub-pixel rendering artifacts */
+        imageRendering: 'crisp-edges',
+      }}
     >
-      <canvas ref={canvasRef} />
+      <canvas
+        ref={canvasRef}
+        style={{
+          display: 'block',
+          /* Ensure no CSS scaling blur */
+          imageRendering: '-webkit-optimize-contrast',
+        }}
+      />
       {renderCenter()}
     </div>
   )
