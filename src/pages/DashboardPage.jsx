@@ -58,7 +58,9 @@ function StaggerCard({ index, children, style = {}, hoverLift = true }) {
         transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
         boxShadow: hovered ? '0 8px 24px rgba(0,0,0,0.14)' : 'none',
         transition: 'transform 0.22s ease, box-shadow 0.22s ease',
+        height: '100%',   // ← добавь это
         borderRadius: 15,
+        overflow: 'hidden', // ← и это чтоб тень не вылезала
         ...style,
       }}
     >
