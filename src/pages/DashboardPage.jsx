@@ -25,7 +25,15 @@ function useCountUp(target, duration = 600) {
 
 function Num({ value, decimals = 2 }) {
   const v = useCountUp(value)
-  return <>{decimals === 0 ? Math.round(v) : v.toFixed(decimals).replace('.', ',')}</>
+  const display = decimals === 0 ? Math.round(v) : v.toFixed(decimals).replace('.', ',')
+  const final = decimals === 0
+    ? String(Math.round(value))
+    : value.toFixed(decimals).replace('.', ',')
+  return (
+    <span style={{ display: 'inline-block', minWidth: `${final.length}ch` }}>
+      {display}
+    </span>
+  )
 }
 
 // ── Filter pill ───────────────────────────────────────────────────────────────
@@ -142,7 +150,7 @@ function DeviationStrip({ suppliers }) {
   )
 }
 
-// ── Reliability strip ─────────────────────────────────────────────────────────
+// ── Reliability strip ────────────────────────��────────────────────────────────
 function ReliabilityStrip({ suppliers }) {
   return (
     <div style={{
@@ -277,7 +285,7 @@ function DonutCard({ segments, totalAmount }) {
   )
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+// ── Main page ─────────────────���───────────────────────────────────────────────
 export default function DashboardPage({ onBack }) {
   const [visible, setVisible] = useState(false)
   const [period, setPeriod] = useState(FILTER_OPTIONS_PORTFOLIO.periods[0])
