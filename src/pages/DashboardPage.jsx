@@ -276,7 +276,7 @@ function DonutCard({ segments, totalAmount }) {
               transform: 'translate(-50%, -50%)',
               width: '90%', height: '90%',
             }}>
-              <DonutChartCJ data={chartData} total={totalStr} />
+              <DonutChartCJ data={chartData} total={totalStr} centerColor="#000" />
             </div>
           </div>
         </div>
