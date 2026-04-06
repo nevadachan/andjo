@@ -15,7 +15,6 @@ export default function ParetoChart({ labels, costData, cumulativeData }) {
     if (!canvas) return
     const ctx = canvas.getContext('2d')
 
-    /* Force high-res rendering on all screens */
     const dpr = Math.max(window.devicePixelRatio || 1, 2)
 
     const gradId = ctx.createLinearGradient(0, 0, 0, 300)
@@ -35,17 +34,20 @@ export default function ParetoChart({ labels, costData, cumulativeData }) {
             const val = ds.data[i]
             if (val == null) return
             c.save()
-            c.font = di === 0
-              ? 'bold 9px Pragmatica, Inter, sans-serif'
-              : 'bold 9px Pragmatica, Inter, sans-serif'
-            c.fillStyle = di === 0 ? '#333' : '#bf3580'
+            c.font = 'bold 9px Pragmatica, Inter, sans-serif'
             c.textAlign = 'center'
-            c.textBaseline = di === 0 ? 'bottom' : 'middle'
             if (di === 0) {
-              c.fillText(val.toFixed(2), el.x, el.y - 3)
-            } else {
+              // ── бар: чёрный цвет, отступ 6px над баром ──
+              c.fillStyle = '#000'
+              c.textBaseline = 'bottom'
+              c.fillText(val.toFixed(2), el.x, el.y - 6)
+            } else if (di === 1) {
+              // ── линия накопленной доли: розовый, правее точки ──
+              c.fillStyle = '#bf3580'
+              c.textBaseline = 'middle'
               c.fillText(val.toFixed(1) + '%', el.x + 14, el.y)
             }
+            // di === 2 — пороговая линия, подписи не нужны
             c.restore()
           })
         })
@@ -96,8 +98,11 @@ export default function ParetoChart({ labels, costData, cumulativeData }) {
         animation: { duration: 400 },
         responsive: true,
         maintainAspectRatio: false,
-        /* ═══ KEY FIX: crisp rendering ═══ */
         devicePixelRatio: dpr,
+        layout: {
+          // ── отступ сверху чтобы цифры над барами не обрезались ──
+          padding: { top: 18 },
+        },
         plugins: {
           legend: { display: false },
           tooltip: { enabled: true },
@@ -126,13 +131,8 @@ export default function ParetoChart({ labels, costData, cumulativeData }) {
             position: 'right',
             min: 0,
             max: 110,
-            reverse: false,
             grid: { drawOnChartArea: false },
-            ticks: {
-              font: { size: 8 },
-              color: '#555',
-              callback: v => v + '%',
-            },
+            ticks: { font: { size: 8 }, color: '#555', callback: v => v + '%' },
             title: {
               display: true,
               text: 'накопленная доля, %',
