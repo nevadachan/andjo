@@ -400,7 +400,7 @@ export default function StrategicPage({ onBack }) {
       <div style={{
         width: '100%', height: '100%',
         display: 'flex', flexDirection: 'column',
-        background: '#000',
+        background: '#f6f1f5',
         padding: '8px 30px 10px',
         boxSizing: 'border-box',
         overflow: 'hidden',
