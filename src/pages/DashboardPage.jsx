@@ -6,7 +6,7 @@ import DonutChartCJ from '../components/charts/DonutChartCJ'
 
 const CSS = `
   @keyframes cardIn {
-    from { opacity: 0; transform: translateY(18px); }
+    from { opacity: 0; transform: translateY(12px); }
     to   { opacity: 1; transform: translateY(0); }
   }
   @keyframes fadeIn {
@@ -14,16 +14,15 @@ const CSS = `
     to   { opacity: 1; }
   }
   @keyframes ddIn {
-    from { opacity: 0; transform: translateY(-6px); }
+    from { opacity: 0; transform: translateY(-4px); }
     to   { opacity: 1; transform: translateY(0); }
   }
 `
 
 // ── Animated counter ──────────────────────────────────────────────────────────
-function useCountUp(target, duration = 700, active = true) {
+function useCountUp(target, duration = 600) {
   const [val, setVal] = useState(0)
   useEffect(() => {
-    if (!active) return
     setVal(0)
     const num = parseFloat(String(target).replace(',', '.')) || 0
     const start = performance.now()
@@ -35,38 +34,14 @@ function useCountUp(target, duration = 700, active = true) {
       else setVal(num)
     }
     requestAnimationFrame(raf)
-  }, [target, active])
+  }, [target])
   return val
 }
 
-function AnimatedNumber({ value, decimals = 2, suffix = '' }) {
-  const counted = useCountUp(value, 700, true)
+function AnimatedNumber({ value, decimals = 2 }) {
+  const counted = useCountUp(value, 600)
   const display = decimals === 0 ? Math.round(counted) : counted.toFixed(decimals).replace('.', ',')
-  return <>{display}{suffix}</>
-}
-
-// ── Stagger card wrapper ──────────────────────────────────────────────────────
-function StaggerCard({ index, children, style = {}, hoverLift = true }) {
-  const [hovered, setHovered] = useState(false)
-  return (
-    <div
-      onMouseEnter={() => hoverLift && setHovered(true)}
-      onMouseLeave={() => hoverLift && setHovered(false)}
-      style={{
-        animation: `cardIn 0.45s ease both`,
-        animationDelay: `${index * 70}ms`,
-        transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
-        boxShadow: hovered ? '0 8px 24px rgba(0,0,0,0.14)' : 'none',
-        transition: 'transform 0.22s ease, box-shadow 0.22s ease',
-        height: '100%',   // ← добавь это
-        borderRadius: 15,
-        overflow: 'hidden', // ← и это чтоб тень не вылезала
-        ...style,
-      }}
-    >
-      {children}
-    </div>
-  )
+  return <>{display}</>
 }
 
 // ── Filter pill ───────────────────────────────────────────────────────────────
@@ -146,12 +121,13 @@ function DeviationStrip({ suppliers }) {
             <div key={s.id} style={{
               flex: 1, minWidth: 0,
               display: 'flex', flexDirection: 'column', justifyContent: 'center',
-              animation: `fadeIn 0.4s ease both`,
-              animationDelay: `${i * 60}ms`,
+              opacity: 0,
+              animation: 'fadeIn 0.5s ease forwards',
+              animationDelay: `${i * 50 + 200}ms`,
             }}>
               <div style={{ fontSize: 9, color: '#808082', marginBottom: 2 }}>{s.label}</div>
               <div style={{ display: 'flex', alignItems: 'baseline' }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color }}>{pos ? '+' : ''}</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color }}>{pos ? '+' : '−'}</span>
                 <span style={{ fontSize: 20, fontWeight: 700, color }}>
                   <AnimatedNumber value={Math.abs(s.deviation)} decimals={2} />
                 </span>
@@ -169,7 +145,7 @@ function DeviationStrip({ suppliers }) {
                   <div style={{ fontSize: 6, color: '#808082', lineHeight: '6.6px' }}>переплата</div>
                   <div style={{ marginTop: 1 }}>
                     <span style={{ fontSize: 8.67, fontWeight: 700, color: '#808082' }}>
-                      {s.overpay >= 0 ? '+' : ''}<AnimatedNumber value={s.overpay} decimals={2} />
+                      {s.overpay >= 0 ? '+' : '−'}<AnimatedNumber value={Math.abs(s.overpay)} decimals={2} />
                     </span>
                     <span style={{ fontSize: 4, color: '#808082' }}> тыс руб</span>
                   </div>
@@ -202,8 +178,9 @@ function ReliabilityStrip({ suppliers }) {
           <div key={s.id} style={{
             flex: 1, minWidth: 0,
             display: 'flex', flexDirection: 'column', justifyContent: 'center',
-            animation: `fadeIn 0.4s ease both`,
-            animationDelay: `${i * 60}ms`,
+            opacity: 0,
+            animation: 'fadeIn 0.5s ease forwards',
+            animationDelay: `${i * 50 + 200}ms`,
           }}>
             <div style={{ fontSize: 9, color: '#808082', marginBottom: 2 }}>{s.label}</div>
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
@@ -225,7 +202,7 @@ function ReliabilityStrip({ suppliers }) {
   )
 }
 
-// ── Card wrapper ──────────────────────────────────────────────────────────────
+// ── Chart card ────────────────────────────────────────────────────────────────
 function ChartCard({ title, dark, children, legendItems }) {
   const bg = dark ? '#000' : '#fff'
   const titleColor = dark ? 'rgba(255,255,255,0.80)' : 'rgba(0,0,0,0.80)'
@@ -308,8 +285,9 @@ function DonutCard({ segments, totalAmount }) {
           {segments.map((s, i) => (
             <div key={s.id} style={{
               display: 'flex', alignItems: 'center', gap: 10,
-              animation: `fadeIn 0.4s ease both`,
-              animationDelay: `${i * 80}ms`,
+              opacity: 0,
+              animation: 'fadeIn 0.5s ease forwards',
+              animationDelay: `${i * 60 + 300}ms`,
             }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
               <span style={{ fontSize: 10, color: '#000', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -349,8 +327,8 @@ export default function DashboardPage({ onBack }) {
   }, [openPill])
 
   const pills = [
-    { key: 'period',   label: 'период',               value: period,   options: FILTER_OPTIONS_PORTFOLIO.periods,     onChange: setPeriod   },
-    { key: 'category', label: 'закупочная категория',  value: category, options: FILTER_OPTIONS_PORTFOLIO.categories,  onChange: setCategory },
+    { key: 'period',   label: 'период',              value: period,   options: FILTER_OPTIONS_PORTFOLIO.periods,    onChange: setPeriod   },
+    { key: 'category', label: 'закупочная категория', value: category, options: FILTER_OPTIONS_PORTFOLIO.categories, onChange: setCategory },
   ]
 
   const { suppliers, avgPrice, totalAmount, donutSegments } = dataset
@@ -360,8 +338,15 @@ export default function DashboardPage({ onBack }) {
     price: Math.round(avgPrice * (1 + s.deviation / 100)),
   }))
 
-  const normDefect = 3
+  const normDefect   = 3
   const normReaction = 12
+
+  // stagger delays for grid cells
+  const cellAnim = i => ({
+    opacity: 0,
+    animation: 'cardIn 0.5s ease forwards',
+    animationDelay: `${i * 60}ms`,
+  })
 
   return (
     <>
@@ -425,11 +410,11 @@ export default function DashboardPage({ onBack }) {
           overflow: 'hidden',
         }}>
           {/* Row 1 */}
-          <StaggerCard index={0}><DeviationStrip suppliers={suppliers} /></StaggerCard>
-          <StaggerCard index={1}><ReliabilityStrip suppliers={suppliers} /></StaggerCard>
+          <div style={cellAnim(0)}><DeviationStrip suppliers={suppliers} /></div>
+          <div style={cellAnim(1)}><ReliabilityStrip suppliers={suppliers} /></div>
 
           {/* Row 2 */}
-          <StaggerCard index={2}>
+          <div style={cellAnim(2)}>
             <ChartCard
               title="Сравнительный анализ закупочных цен у поставщиков, руб"
               dark
@@ -440,9 +425,9 @@ export default function DashboardPage({ onBack }) {
             >
               <PriceChart suppliers={suppliersWithPrice} avgPrice={avgPrice} />
             </ChartCard>
-          </StaggerCard>
+          </div>
 
-          <StaggerCard index={3}>
+          <div style={cellAnim(3)}>
             <ChartCard
               title="Уровень брака по поставщикам, %"
               legendItems={[
@@ -452,10 +437,10 @@ export default function DashboardPage({ onBack }) {
             >
               <BarChart suppliers={suppliers} getValue={s => s.defectRate ?? 0} colorVariant="pink" normLine={normDefect} normLabel={`норма ${normDefect}%`} />
             </ChartCard>
-          </StaggerCard>
+          </div>
 
           {/* Row 3 */}
-          <StaggerCard index={4}>
+          <div style={cellAnim(4)}>
             <ChartCard
               title="Скорость реакции поставщика на запросы, часы"
               legendItems={[
@@ -465,11 +450,11 @@ export default function DashboardPage({ onBack }) {
             >
               <BarChart suppliers={suppliers} getValue={s => s.reactionTime ?? 0} colorVariant="grey" normLine={normReaction} normLabel={`норма ${normReaction}ч`} />
             </ChartCard>
-          </StaggerCard>
+          </div>
 
-          <StaggerCard index={5}>
+          <div style={cellAnim(5)}>
             <DonutCard segments={donutSegments} totalAmount={totalAmount} />
-          </StaggerCard>
+          </div>
         </div>
       </div>
     </>
