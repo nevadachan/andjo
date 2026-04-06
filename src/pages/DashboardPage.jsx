@@ -4,12 +4,12 @@ import BarChart from '../components/charts/BarChart'
 import PriceChart from '../components/charts/PriceChart'
 import DonutChartCJ from '../components/charts/DonutChartCJ'
 
-// ── Animated counter ──────────────────────────────────────────────────────────
+// ── Animated counter ─────────────────────────────────────────────────────��────
 function useCountUp(target, duration = 600) {
   const [val, setVal] = useState(0)
   useEffect(() => {
     setVal(0)
-    const num = parseFloat(String(target).replace(',', '.')) || 0
+    const num = Math.abs(parseFloat(String(target).replace(',', '.')) || 0)
     const start = performance.now()
     const tick = now => {
       const p = Math.min((now - start) / duration, 1)
@@ -24,11 +24,12 @@ function useCountUp(target, duration = 600) {
 }
 
 function Num({ value, decimals = 2 }) {
-  const v = useCountUp(value)
+  const abs = Math.abs(parseFloat(String(value).replace(',', '.')) || 0)
+  const v = useCountUp(abs)
   const display = decimals === 0 ? Math.round(v) : v.toFixed(decimals).replace('.', ',')
   const final = decimals === 0
-    ? String(Math.round(value))
-    : value.toFixed(decimals).replace('.', ',')
+    ? String(Math.round(abs))
+    : abs.toFixed(decimals).replace('.', ',')
   return (
     <span style={{ display: 'inline-block', minWidth: `${final.length}ch` }}>
       {display}
@@ -112,31 +113,39 @@ function DeviationStrip({ suppliers }) {
             <div key={s.id} style={{
               flex: 1, minWidth: 0,
               display: 'flex', flexDirection: 'column', justifyContent: 'center',
+              overflow: 'hidden',
             }}>
-              <div style={{ fontSize: 9, color: '#808082', marginBottom: 2 }}>{s.label}</div>
+              <div style={{
+                fontSize: 9, color: '#808082', marginBottom: 2,
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              }}>
+                {s.label}
+              </div>
               <div style={{ display: 'flex', alignItems: 'baseline' }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color }}>{pos ? '+' : ''}</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color, flexShrink: 0 }}>
+                  {pos ? '+' : '−'}
+                </span>
                 <span style={{ fontSize: 20, fontWeight: 700, color }}>
                   <Num value={Math.abs(s.deviation)} decimals={2} />
                 </span>
-                <span style={{ fontSize: 8.67, color: 'transparent' }}>&nbsp;</span>
-                <span style={{ fontSize: 10, color: '#808082' }}>%</span>
+                <span style={{ fontSize: 8.67, color: 'transparent', flexShrink: 0 }}>&nbsp;</span>
+                <span style={{ fontSize: 10, color: '#808082', flexShrink: 0 }}>%</span>
               </div>
-              <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
-                <div>
-                  <div style={{ fontSize: 6, color: '#808082', textTransform: 'lowercase', lineHeight: '6.6px' }}>объем</div>
-                  <div style={{ marginTop: 1 }}>
+              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 6, color: '#808082', textTransform: 'lowercase', lineHeight: '6.6px', whiteSpace: 'nowrap' }}>объем</div>
+                  <div style={{ marginTop: 1, whiteSpace: 'nowrap' }}>
                     <span style={{ fontSize: 8.67, fontWeight: 700, color: '#808082' }}>
                       {s.volume.toLocaleString('ru')}
                     </span>
                     <span style={{ fontSize: 4, color: '#808082' }}> шт</span>
                   </div>
                 </div>
-                <div>
-                  <div style={{ fontSize: 6, color: '#808082', lineHeight: '6.6px' }}>переплата</div>
-                  <div style={{ marginTop: 1 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 6, color: '#808082', lineHeight: '6.6px', whiteSpace: 'nowrap' }}>переплата</div>
+                  <div style={{ marginTop: 1, whiteSpace: 'nowrap' }}>
                     <span style={{ fontSize: 8.67, fontWeight: 700, color: '#808082' }}>
-                      {s.overpay >= 0 ? '+' : ''}<Num value={s.overpay} decimals={2} />
+                      {s.overpay >= 0 ? '+' : '−'}<Num value={Math.abs(s.overpay)} decimals={2} />
                     </span>
                     <span style={{ fontSize: 4, color: '#808082' }}> тыс руб</span>
                   </div>
@@ -150,7 +159,7 @@ function DeviationStrip({ suppliers }) {
   )
 }
 
-// ── Reliability strip ────────────────────────��────────────────────────────────
+// ── Reliability strip ─────────────────────────────────────────────────────────
 function ReliabilityStrip({ suppliers }) {
   return (
     <div style={{
@@ -169,17 +178,24 @@ function ReliabilityStrip({ suppliers }) {
           <div key={s.id} style={{
             flex: 1, minWidth: 0,
             display: 'flex', flexDirection: 'column', justifyContent: 'center',
+            overflow: 'hidden',
           }}>
-            <div style={{ fontSize: 9, color: '#808082', marginBottom: 2 }}>{s.label}</div>
+            <div style={{
+              fontSize: 9, color: '#808082', marginBottom: 2,
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>
+              {s.label}
+            </div>
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
               <span style={{ fontSize: 20, fontWeight: 700, color: '#EA529B' }}>
                 <Num value={s.reliability} decimals={2} />
               </span>
-              <span style={{ fontSize: 10, color: '#808082', marginLeft: 2 }}>%</span>
+              <span style={{ fontSize: 10, color: '#808082', marginLeft: 2, flexShrink: 0 }}>%</span>
             </div>
             <div style={{
               fontSize: 6, color: '#808082', marginTop: 3,
               lineHeight: '6.6px', textTransform: 'lowercase', maxWidth: 70,
+              overflow: 'hidden',
             }}>
               {s.reliabilityNote}
             </div>
@@ -275,7 +291,7 @@ function DonutCard({ segments, totalAmount }) {
                 {s.label}
               </span>
               <span style={{ fontSize: 10, color: '#000', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                <Num value={s.amount ?? s.value} decimals={2} /> млн руб
+                <Num value={Math.abs(s.amount ?? s.value)} decimals={2} /> млн руб
               </span>
             </div>
           ))}
@@ -285,7 +301,7 @@ function DonutCard({ segments, totalAmount }) {
   )
 }
 
-// ── Main page ─────────────────���───────────────────────────────────────────────
+// ── Main page ─────────────────────────────────────────────────────────────────
 export default function DashboardPage({ onBack }) {
   const [visible, setVisible] = useState(false)
   const [period, setPeriod] = useState(FILTER_OPTIONS_PORTFOLIO.periods[0])
@@ -332,6 +348,7 @@ export default function DashboardPage({ onBack }) {
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0)' : 'translateY(30px)',
         transition: 'opacity .5s ease, transform .5s ease',
+        willChange: 'opacity, transform',
       }}
       onClick={closePills}
     >
