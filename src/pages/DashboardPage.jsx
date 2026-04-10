@@ -92,7 +92,7 @@ function FilterPill({ label, value, options, open, onToggle, onSelect }) {
 }
 
 // ── Deviation strip ───────────────────────────────────────────────────────────
-function DeviationStrip({ suppliers }) {
+function DeviationStrip({ suppliers, activeId }) {
   return (
     <div style={{
       background: '#000', borderRadius: 15, height: '100%',
@@ -109,15 +109,30 @@ function DeviationStrip({ suppliers }) {
         {suppliers.map(s => {
           const pos = s.deviation >= 0
           const color = pos ? '#FFA617' : '#00B473'
+          const dimmed = activeId && activeId !== s.id
           return (
             <div key={s.id} style={{
               flex: 1, minWidth: 0,
               display: 'flex', flexDirection: 'column', justifyContent: 'center',
               overflow: 'hidden',
+              opacity: dimmed ? 0.25 : 1,
+              transition: 'opacity 0.3s ease',
+              position: 'relative',
             }}>
+              {/* highlight ring for active */}
+              {activeId === s.id && (
+                <div style={{
+                  position: 'absolute', inset: '-4px -4px -4px -4px',
+                  borderRadius: 10,
+                  boxShadow: '0 0 0 1.5px rgba(248,215,224,0.6)',
+                  pointerEvents: 'none',
+                }} />
+              )}
               <div style={{
                 fontSize: 9, color: '#808082', marginBottom: 2,
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                color: activeId === s.id ? '#fff' : '#808082',
+                fontWeight: activeId === s.id ? 700 : 400,
               }}>
                 {s.label}
               </div>
@@ -160,7 +175,7 @@ function DeviationStrip({ suppliers }) {
 }
 
 // ── Reliability strip ─────────────────────────────────────────────────────────
-function ReliabilityStrip({ suppliers }) {
+function ReliabilityStrip({ suppliers, activeId }) {
   return (
     <div style={{
       background: 'rgba(255,255,255,0.80)', borderRadius: 15, height: '100%',
@@ -174,33 +189,40 @@ function ReliabilityStrip({ suppliers }) {
         Индекс надежности поставщика
       </div>
       <div style={{ display: 'flex', padding: '0 13px 8px', flex: 1 }}>
-        {suppliers.map(s => (
-          <div key={s.id} style={{
-            flex: 1, minWidth: 0,
-            display: 'flex', flexDirection: 'column', justifyContent: 'center',
-            overflow: 'hidden',
-          }}>
-            <div style={{
-              fontSize: 9, color: '#808082', marginBottom: 2,
-              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-            }}>
-              {s.label}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'baseline' }}>
-              <span style={{ fontSize: 20, fontWeight: 700, color: '#EA529B' }}>
-                <Num value={s.reliability} decimals={2} />
-              </span>
-              <span style={{ fontSize: 10, color: '#808082', marginLeft: 2, flexShrink: 0 }}>%</span>
-            </div>
-            <div style={{
-              fontSize: 6, color: '#808082', marginTop: 3,
-              lineHeight: '6.6px', textTransform: 'lowercase', maxWidth: 70,
+        {suppliers.map(s => {
+          const dimmed = activeId && activeId !== s.id
+          return (
+            <div key={s.id} style={{
+              flex: 1, minWidth: 0,
+              display: 'flex', flexDirection: 'column', justifyContent: 'center',
               overflow: 'hidden',
+              opacity: dimmed ? 0.25 : 1,
+              transition: 'opacity 0.3s ease',
             }}>
-              {s.reliabilityNote}
+              <div style={{
+                fontSize: 9, marginBottom: 2,
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                color: activeId === s.id ? '#bf3580' : '#808082',
+                fontWeight: activeId === s.id ? 700 : 400,
+              }}>
+                {s.label}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                <span style={{ fontSize: 20, fontWeight: 700, color: '#EA529B' }}>
+                  <Num value={s.reliability} decimals={2} />
+                </span>
+                <span style={{ fontSize: 10, color: '#808082', marginLeft: 2, flexShrink: 0 }}>%</span>
+              </div>
+              <div style={{
+                fontSize: 6, color: '#808082', marginTop: 3,
+                lineHeight: '6.6px', textTransform: 'lowercase', maxWidth: 70,
+                overflow: 'hidden',
+              }}>
+                {s.reliabilityNote}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
@@ -245,8 +267,14 @@ function ChartCard({ title, dark, children, legendItems }) {
 }
 
 // ── Donut card ────────────────────────────────────────────────────────────────
-function DonutCard({ segments, totalAmount }) {
-  const chartData = segments.map(s => ({ label: s.label, value: s.pct, color: s.color }))
+function DonutCard({ segments, totalAmount, activeId }) {
+  const chartData = segments.map(s => ({
+    label: s.label,
+    value: s.pct,
+    color: activeId && activeId !== s.id
+      ? (s.color + '40') // hex opacity ~25%
+      : s.color,
+  }))
   const totalStr = totalAmount != null ? totalAmount.toFixed(2).replace('.', ',') : ''
 
   return (
@@ -284,100 +312,74 @@ function DonutCard({ segments, totalAmount }) {
           flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column',
           justifyContent: 'center', gap: 10, paddingLeft: 20,
         }}>
-          {segments.map(s => (
-            <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
-              <span style={{ fontSize: 10, color: '#000', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {s.label}
-              </span>
-              <span style={{ fontSize: 10, color: '#000', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                <Num value={Math.abs(s.amount ?? s.value)} decimals={2} /> млн руб
-              </span>
-            </div>
-          ))}
+          {segments.map(s => {
+            const dimmed = activeId && activeId !== s.id
+            return (
+              <div key={s.id} style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                opacity: dimmed ? 0.25 : 1,
+                transition: 'opacity 0.3s ease',
+              }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
+                <span style={{
+                  fontSize: 10, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  color: activeId === s.id ? '#bf3580' : '#000',
+                  fontWeight: activeId === s.id ? 700 : 400,
+                }}>
+                  {s.label}
+                </span>
+                <span style={{ fontSize: 10, color: '#000', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  <Num value={Math.abs(s.amount ?? s.value)} decimals={2} /> млн руб
+                </span>
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>
   )
 }
 
-// ── Hardcoded suppliers A–F (as on the screenshot) ────────────────────────────
+// ── Suppliers A–F ─────────────────────────────────────────────────────────────
 const ALL_SUPPLIERS = [
   {
-    id: 'A',
-    label: 'Поставщик А',
-    deviation: 6.29,
-    volume: 4000,
-    overpay: 1168.00,
-    reliability: 93.60,
-    reliabilityNote: 'надёжный, дороже рынка',
-    defectRate: 1.8,
-    reactionTime: 6,
-    color: '#BF3580',
+    id: 'A', label: 'Поставщик А',
+    deviation: 6.29,   volume: 4000, overpay: 1168.00,
+    reliability: 93.60, reliabilityNote: 'надёжный, дороже рынка',
+    defectRate: 1.8,  reactionTime: 6,  color: '#BF3580',
   },
   {
-    id: 'B',
-    label: 'Поставщик В',
-    deviation: -1.55,
-    volume: 2450,
-    overpay: -176.40,
-    reliability: 90.20,
-    reliabilityNote: 'надёжный, сбалансированный по цене и качеству',
-    defectRate: 2.6,
-    reactionTime: 9,
-    color: '#EA529B',
+    id: 'B', label: 'Поставщик В',
+    deviation: -1.55,  volume: 2450, overpay: -176.40,
+    reliability: 90.20, reliabilityNote: 'надёжный, сбалансированный по цене и качеству',
+    defectRate: 2.6,  reactionTime: 9,  color: '#EA529B',
   },
   {
-    id: 'C',
-    label: 'Поставщик С',
-    deviation: -2.52,
-    volume: 1900,
-    overpay: -222.30,
-    reliability: 86.20,
-    reliabilityNote: 'средний уровень, риски качества и сроков',
-    defectRate: 3.9,
-    reactionTime: 14,
-    color: '#F07DB5',
+    id: 'C', label: 'Поставщик С',
+    deviation: -2.52,  volume: 1900, overpay: -222.30,
+    reliability: 86.20, reliabilityNote: 'средний уровень, риски качества и сроков',
+    defectRate: 3.9,  reactionTime: 14, color: '#F07DB5',
   },
   {
-    id: 'D',
-    label: 'Поставщик D',
-    deviation: -3.44,
-    volume: 1450,
-    overpay: -232.00,
-    reliability: 95.30,
-    reliabilityNote: 'стабильный и надёжный',
-    defectRate: 1.2,
-    reactionTime: 5,
-    color: '#808082',
+    id: 'D', label: 'Поставщик D',
+    deviation: -3.44,  volume: 1450, overpay: -232.00,
+    reliability: 95.30, reliabilityNote: 'стабильный и надёжный',
+    defectRate: 1.2,  reactionTime: 5,  color: '#808082',
   },
   {
-    id: 'E',
-    label: 'Поставщик Е',
-    deviation: -6.67,
-    volume: 900,
-    overpay: -279.00,
-    reliability: 83.70,
-    reliabilityNote: 'зона повышенного риска',
-    defectRate: 4.8,
-    reactionTime: 18,
-    color: '#CDCCCC',
+    id: 'E', label: 'Поставщик Е',
+    deviation: -6.67,  volume: 900,  overpay: -279.00,
+    reliability: 83.70, reliabilityNote: 'зона повышенного риска',
+    defectRate: 4.8,  reactionTime: 18, color: '#CDCCCC',
   },
   {
-    id: 'F',
-    label: 'Поставщик F',
-    deviation: -11.26,
-    volume: 500,
-    overpay: -261.50,
-    reliability: 96.70,
-    reliabilityNote: 'стратегический спорный поставщик',
-    defectRate: 0.9,
-    reactionTime: 4,
-    color: '#3D3D3D',
+    id: 'F', label: 'Поставщик F',
+    deviation: -11.26, volume: 500,  overpay: -261.50,
+    reliability: 96.70, reliabilityNote: 'стратегический спорный поставщик',
+    defectRate: 0.9,  reactionTime: 4,  color: '#3D3D3D',
   },
 ]
 
-// Donut segments for all suppliers (as on screenshot)
 const ALL_DONUT_SEGMENTS = [
   { id: 'A', label: 'Поставщик А', pct: 37.96, amount: 19.74, color: '#BF3580' },
   { id: 'B', label: 'Поставщик В', pct: 21.54, amount: 11.20, color: '#EA529B' },
@@ -399,6 +401,10 @@ const SUPPLIER_FILTER_OPTIONS = [
   'Поставщик F',
 ]
 
+// ── BarChart with highlight ───────────────────────────────────────────────────
+// Wrapper that passes activeId down via a context-like prop name
+// (BarChart itself needs to support activeId — see note below)
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function DashboardPage({ onBack }) {
   const [visible, setVisible] = useState(false)
@@ -407,37 +413,21 @@ export default function DashboardPage({ onBack }) {
   const [supplier, setSupplier] = useState('Все поставщики')
   const [openPill, setOpenPill] = useState(null)
 
-  // Use external dataset for period/category, but merge our hardcoded suppliers
   const dataset = useMemo(() => {
     return SUPPLIER_DATASETS.find(d => d.period === period && d.category === category)
       || SUPPLIER_DATASETS.find(d => d.category === category)
       || DEFAULT_SUPPLIER_DATASET
   }, [period, category])
 
-  // Filtered suppliers list
-  const filteredSuppliers = useMemo(() => {
-    if (supplier === 'Все поставщики') return ALL_SUPPLIERS
-    return ALL_SUPPLIERS.filter(s => s.label === supplier)
-  }, [supplier])
-
-  // Filtered donut segments
-  const filteredDonutSegments = useMemo(() => {
-    if (supplier === 'Все поставщики') return ALL_DONUT_SEGMENTS
-    const seg = ALL_DONUT_SEGMENTS.find(s => s.label === supplier)
-    return seg ? [{ ...seg, pct: 100 }] : ALL_DONUT_SEGMENTS
-  }, [supplier])
-
-  // Total amount for donut center
-  const filteredTotalAmount = useMemo(() => {
-    if (supplier === 'Все поставщики') return ALL_TOTAL_AMOUNT
-    const seg = ALL_DONUT_SEGMENTS.find(s => s.label === supplier)
-    return seg ? seg.amount : ALL_TOTAL_AMOUNT
-  }, [supplier])
-
-  // avgPrice: use from dataset if available, otherwise fallback
   const avgPrice = dataset?.avgPrice ?? AVG_PRICE
 
-  const suppliersWithPrice = filteredSuppliers.map(s => ({
+  // activeId: null = все, иначе id выбранного поставщика
+  const activeId = useMemo(() => {
+    if (supplier === 'Все поставщики') return null
+    return ALL_SUPPLIERS.find(s => s.label === supplier)?.id ?? null
+  }, [supplier])
+
+  const suppliersWithPrice = ALL_SUPPLIERS.map(s => ({
     ...s,
     price: Math.round(avgPrice * (1 + s.deviation / 100)),
   }))
@@ -520,8 +510,8 @@ export default function DashboardPage({ onBack }) {
         gap: 10,
         overflow: 'hidden',
       }}>
-        <DeviationStrip suppliers={filteredSuppliers} />
-        <ReliabilityStrip suppliers={filteredSuppliers} />
+        <DeviationStrip suppliers={ALL_SUPPLIERS} activeId={activeId} />
+        <ReliabilityStrip suppliers={ALL_SUPPLIERS} activeId={activeId} />
 
         <ChartCard
           title="Сравнительный анализ закупочных цен у поставщиков, руб"
@@ -531,7 +521,7 @@ export default function DashboardPage({ onBack }) {
             { label: 'цена у поставщиков', gradient: 'linear-gradient(180deg, #fff 16%, rgba(209,209,209,0.42) 100%)', type: 'circle' },
           ]}
         >
-          <PriceChart suppliers={suppliersWithPrice} avgPrice={avgPrice} />
+          <PriceChart suppliers={suppliersWithPrice} avgPrice={avgPrice} activeId={activeId} />
         </ChartCard>
 
         <ChartCard
@@ -542,11 +532,12 @@ export default function DashboardPage({ onBack }) {
           ]}
         >
           <BarChart
-            suppliers={filteredSuppliers}
+            suppliers={ALL_SUPPLIERS}
             getValue={s => s.defectRate ?? 0}
             colorVariant="pink"
             normLine={normDefect}
             normLabel={`норма ${normDefect}%`}
+            activeId={activeId}
           />
         </ChartCard>
 
@@ -558,15 +549,20 @@ export default function DashboardPage({ onBack }) {
           ]}
         >
           <BarChart
-            suppliers={filteredSuppliers}
+            suppliers={ALL_SUPPLIERS}
             getValue={s => s.reactionTime ?? 0}
             colorVariant="grey"
             normLine={normReaction}
             normLabel={`норма ${normReaction}ч`}
+            activeId={activeId}
           />
         </ChartCard>
 
-        <DonutCard segments={filteredDonutSegments} totalAmount={filteredTotalAmount} />
+        <DonutCard
+          segments={ALL_DONUT_SEGMENTS}
+          totalAmount={ALL_TOTAL_AMOUNT}
+          activeId={activeId}
+        />
       </div>
     </div>
   )
