@@ -1,11 +1,12 @@
 import React from 'react'
 
-export default function BarChart({ suppliers, getValue, colorVariant, normLine, normLabel }) {
+export default function BarChart({ suppliers, getValue, colorVariant, normLine, normLabel, activeId }) {
   const W = 1120, H = 400
   const L = 60, R = 100, T = 44, B = 56
   const CH = H - T - B
   const isPink = colorVariant === 'pink'
   const gradId = `bar-grad-${colorVariant}`
+  const gradActiveId = `bar-grad-${colorVariant}-active`
 
   if (!suppliers || suppliers.length === 0) {
     return <svg width="100%" height="100%" viewBox={`0 0 ${W} ${H}`} />
@@ -29,14 +30,23 @@ export default function BarChart({ suppliers, getValue, colorVariant, normLine, 
       textRendering="optimizeLegibility"
     >
       <defs>
+        {/* dimmed gradient */}
         <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
           {isPink
             ? <><stop offset="0%" stopColor="#F8D7E0" /><stop offset="100%" stopColor="#BF3580" /></>
             : <><stop offset="16%" stopColor="#808082" /><stop offset="71%" stopColor="#CDCCCC" /></>
           }
         </linearGradient>
+        {/* active/highlighted gradient — brighter */}
+        <linearGradient id={gradActiveId} x1="0" y1="0" x2="0" y2="1">
+          {isPink
+            ? <><stop offset="0%" stopColor="#fce8f0" /><stop offset="100%" stopColor="#bf3580" /></>
+            : <><stop offset="0%" stopColor="#606062" /><stop offset="100%" stopColor="#b0b0b2" /></>
+          }
+        </linearGradient>
       </defs>
 
+      {/* grid lines + left y-axis labels */}
       {Array.from({ length: yTicks }).map((_, t) => {
         const v = tickStep * t
         const y = T + CH - (v / niceMax) * CH
@@ -50,6 +60,7 @@ export default function BarChart({ suppliers, getValue, colorVariant, normLine, 
         )
       })}
 
+      {/* left axis label */}
       <text
         transform={`translate(16, ${T + CH / 2}) rotate(-90)`}
         textAnchor="middle" fontSize="12" fill="rgba(0,0,0,0.5)" fontFamily="Pragmatica, sans-serif"
@@ -57,6 +68,7 @@ export default function BarChart({ suppliers, getValue, colorVariant, normLine, 
         {isPink ? 'уровень брака, %' : 'время реакции, часы'}
       </text>
 
+      {/* bottom axis label */}
       <text
         x={(L + W - R) / 2} y={H - 4}
         textAnchor="middle" fontSize="12" fill="rgba(0,0,0,0.5)" fontFamily="Pragmatica, sans-serif"
@@ -64,6 +76,7 @@ export default function BarChart({ suppliers, getValue, colorVariant, normLine, 
         поставщик
       </text>
 
+      {/* norm line */}
       {normLine != null && (() => {
         const ny = T + CH - (normLine / niceMax) * CH
         return (
@@ -78,6 +91,7 @@ export default function BarChart({ suppliers, getValue, colorVariant, normLine, 
         )
       })()}
 
+      {/* right y-axis (pink only) */}
       {isPink && Array.from({ length: yTicks }).map((_, t) => {
         const v = Math.round((100 / (yTicks - 1)) * t)
         const y = T + CH - (t / (yTicks - 1)) * CH
@@ -96,6 +110,7 @@ export default function BarChart({ suppliers, getValue, colorVariant, normLine, 
         </text>
       )}
 
+      {/* bars */}
       {suppliers.map((s, i) => {
         const val = getValue(s)
         const bH = Math.max(4, (val / niceMax) * CH)
@@ -103,18 +118,55 @@ export default function BarChart({ suppliers, getValue, colorVariant, normLine, 
         const bx = cx - barW / 2
         const by = T + CH - bH
 
+        const isActive = !activeId || activeId === s.id
+        const opacity = activeId && activeId !== s.id ? 0.2 : 1
+        const fillGrad = isActive && activeId ? `url(#${gradActiveId})` : `url(#${gradId})`
+        const labelColor = activeId === s.id ? (isPink ? '#bf3580' : '#555') : 'rgba(0,0,0,0.55)'
+        const labelWeight = activeId === s.id ? 700 : 400
+        const valueColor = activeId === s.id ? '#000' : 'rgba(0,0,0,0.7)'
+
         return (
-          <g key={s.id || i}>
+          <g
+            key={s.id || i}
+            style={{ transition: 'opacity 0.3s ease' }}
+            opacity={opacity}
+          >
+            {/* glow behind active bar */}
+            {activeId === s.id && (
+              <rect
+                x={bx - 6} y={by - 6}
+                width={barW + 12} height={bH + 6}
+                rx={(barW + 12) / 2}
+                fill={isPink ? 'rgba(191,53,128,0.10)' : 'rgba(128,128,130,0.15)'}
+              />
+            )}
+
             <rect
               x={bx} y={by} width={barW} height={bH}
-              fill={`url(#${gradId})`}
+              fill={fillGrad}
               rx={barW / 2}
             />
-            <text x={cx} y={by - 8} textAnchor="middle" fontSize="12" fontWeight="700" fill="#000" fontFamily="Pragmatica, sans-serif">
+
+            {/* value label above bar */}
+            <text
+              x={cx} y={by - 8}
+              textAnchor="middle" fontSize="12"
+              fontWeight={activeId === s.id ? 700 : 600}
+              fill={valueColor}
+              fontFamily="Pragmatica, sans-serif"
+            >
               {typeof val === 'number' ? (Number.isInteger(val) ? val : val.toFixed(1)) : val}
               {isPink ? '%' : ''}
             </text>
-            <text x={cx} y={T + CH + 28} textAnchor="middle" fontSize="14" fill="#000" fontFamily="Pragmatica, sans-serif">
+
+            {/* supplier label below bar */}
+            <text
+              x={cx} y={T + CH + 28}
+              textAnchor="middle" fontSize="14"
+              fill={labelColor}
+              fontWeight={labelWeight}
+              fontFamily="Pragmatica, sans-serif"
+            >
               {s.label || ''}
             </text>
           </g>
