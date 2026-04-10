@@ -4,7 +4,7 @@ import BarChart from '../components/charts/BarChart'
 import PriceChart from '../components/charts/PriceChart'
 import DonutChartCJ from '../components/charts/DonutChartCJ'
 
-// ── Animated counter ─────────────────────────────────────────────────────��────
+// ── Animated counter ──────────────────────────────────────────────────────────
 function useCountUp(target, duration = 600) {
   const [val, setVal] = useState(0)
   useEffect(() => {
@@ -301,18 +301,146 @@ function DonutCard({ segments, totalAmount }) {
   )
 }
 
+// ── Hardcoded suppliers A–F (as on the screenshot) ────────────────────────────
+const ALL_SUPPLIERS = [
+  {
+    id: 'A',
+    label: 'Поставщик А',
+    deviation: 6.29,
+    volume: 4000,
+    overpay: 1168.00,
+    reliability: 93.60,
+    reliabilityNote: 'надёжный, дороже рынка',
+    defectRate: 1.8,
+    reactionTime: 6,
+    color: '#BF3580',
+  },
+  {
+    id: 'B',
+    label: 'Поставщик В',
+    deviation: -1.55,
+    volume: 2450,
+    overpay: -176.40,
+    reliability: 90.20,
+    reliabilityNote: 'надёжный, сбалансированный по цене и качеству',
+    defectRate: 2.6,
+    reactionTime: 9,
+    color: '#EA529B',
+  },
+  {
+    id: 'C',
+    label: 'Поставщик С',
+    deviation: -2.52,
+    volume: 1900,
+    overpay: -222.30,
+    reliability: 86.20,
+    reliabilityNote: 'средний уровень, риски качества и сроков',
+    defectRate: 3.9,
+    reactionTime: 14,
+    color: '#F07DB5',
+  },
+  {
+    id: 'D',
+    label: 'Поставщик D',
+    deviation: -3.44,
+    volume: 1450,
+    overpay: -232.00,
+    reliability: 95.30,
+    reliabilityNote: 'стабильный и надёжный',
+    defectRate: 1.2,
+    reactionTime: 5,
+    color: '#808082',
+  },
+  {
+    id: 'E',
+    label: 'Поставщик Е',
+    deviation: -6.67,
+    volume: 900,
+    overpay: -279.00,
+    reliability: 83.70,
+    reliabilityNote: 'зона повышенного риска',
+    defectRate: 4.8,
+    reactionTime: 18,
+    color: '#CDCCCC',
+  },
+  {
+    id: 'F',
+    label: 'Поставщик F',
+    deviation: -11.26,
+    volume: 500,
+    overpay: -261.50,
+    reliability: 96.70,
+    reliabilityNote: 'стратегический спорный поставщик',
+    defectRate: 0.9,
+    reactionTime: 4,
+    color: '#3D3D3D',
+  },
+]
+
+// Donut segments for all suppliers (as on screenshot)
+const ALL_DONUT_SEGMENTS = [
+  { id: 'A', label: 'Поставщик А', pct: 37.96, amount: 19.74, color: '#BF3580' },
+  { id: 'B', label: 'Поставщик В', pct: 21.54, amount: 11.20, color: '#EA529B' },
+  { id: 'C', label: 'Поставщик С', pct: 16.54, amount: 8.60,  color: '#F07DB5' },
+  { id: 'D', label: 'Поставщик D', pct: 12.50, amount: 6.50,  color: '#808082' },
+  { id: 'E', label: 'Поставщик Е', pct: 7.50,  amount: 3.90,  color: '#CDCCCC' },
+  { id: 'F', label: 'Поставщик F', pct: 3.96,  amount: 2.06,  color: '#3D3D3D' },
+]
+const ALL_TOTAL_AMOUNT = 52.00
+const AVG_PRICE = 4642
+
+const SUPPLIER_FILTER_OPTIONS = [
+  'Все поставщики',
+  'Поставщик А',
+  'Поставщик В',
+  'Поставщик С',
+  'Поставщик D',
+  'Поставщик Е',
+  'Поставщик F',
+]
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function DashboardPage({ onBack }) {
   const [visible, setVisible] = useState(false)
   const [period, setPeriod] = useState(FILTER_OPTIONS_PORTFOLIO.periods[0])
   const [category, setCategory] = useState(FILTER_OPTIONS_PORTFOLIO.categories[0])
+  const [supplier, setSupplier] = useState('Все поставщики')
   const [openPill, setOpenPill] = useState(null)
 
+  // Use external dataset for period/category, but merge our hardcoded suppliers
   const dataset = useMemo(() => {
     return SUPPLIER_DATASETS.find(d => d.period === period && d.category === category)
       || SUPPLIER_DATASETS.find(d => d.category === category)
       || DEFAULT_SUPPLIER_DATASET
   }, [period, category])
+
+  // Filtered suppliers list
+  const filteredSuppliers = useMemo(() => {
+    if (supplier === 'Все поставщики') return ALL_SUPPLIERS
+    return ALL_SUPPLIERS.filter(s => s.label === supplier)
+  }, [supplier])
+
+  // Filtered donut segments
+  const filteredDonutSegments = useMemo(() => {
+    if (supplier === 'Все поставщики') return ALL_DONUT_SEGMENTS
+    const seg = ALL_DONUT_SEGMENTS.find(s => s.label === supplier)
+    return seg ? [{ ...seg, pct: 100 }] : ALL_DONUT_SEGMENTS
+  }, [supplier])
+
+  // Total amount for donut center
+  const filteredTotalAmount = useMemo(() => {
+    if (supplier === 'Все поставщики') return ALL_TOTAL_AMOUNT
+    const seg = ALL_DONUT_SEGMENTS.find(s => s.label === supplier)
+    return seg ? seg.amount : ALL_TOTAL_AMOUNT
+  }, [supplier])
+
+  // avgPrice: use from dataset if available, otherwise fallback
+  const avgPrice = dataset?.avgPrice ?? AVG_PRICE
+
+  const suppliersWithPrice = filteredSuppliers.map(s => ({
+    ...s,
+    price: Math.round(avgPrice * (1 + s.deviation / 100)),
+  }))
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setVisible(true))
@@ -326,14 +454,8 @@ export default function DashboardPage({ onBack }) {
   const pills = [
     { key: 'period',   label: 'период',              value: period,   options: FILTER_OPTIONS_PORTFOLIO.periods,    onChange: setPeriod   },
     { key: 'category', label: 'закупочная категория', value: category, options: FILTER_OPTIONS_PORTFOLIO.categories, onChange: setCategory },
+    { key: 'supplier', label: 'поставщик',            value: supplier, options: SUPPLIER_FILTER_OPTIONS,            onChange: setSupplier },
   ]
-
-  const { suppliers, avgPrice, totalAmount, donutSegments } = dataset
-
-  const suppliersWithPrice = suppliers.map(s => ({
-    ...s,
-    price: Math.round(avgPrice * (1 + s.deviation / 100)),
-  }))
 
   const normDefect   = 3
   const normReaction = 12
@@ -398,8 +520,8 @@ export default function DashboardPage({ onBack }) {
         gap: 10,
         overflow: 'hidden',
       }}>
-        <DeviationStrip suppliers={suppliers} />
-        <ReliabilityStrip suppliers={suppliers} />
+        <DeviationStrip suppliers={filteredSuppliers} />
+        <ReliabilityStrip suppliers={filteredSuppliers} />
 
         <ChartCard
           title="Сравнительный анализ закупочных цен у поставщиков, руб"
@@ -419,7 +541,13 @@ export default function DashboardPage({ onBack }) {
             { label: 'допустимая норма', color: '#e84342', type: 'dash' },
           ]}
         >
-          <BarChart suppliers={suppliers} getValue={s => s.defectRate ?? 0} colorVariant="pink" normLine={normDefect} normLabel={`норма ${normDefect}%`} />
+          <BarChart
+            suppliers={filteredSuppliers}
+            getValue={s => s.defectRate ?? 0}
+            colorVariant="pink"
+            normLine={normDefect}
+            normLabel={`норма ${normDefect}%`}
+          />
         </ChartCard>
 
         <ChartCard
@@ -429,10 +557,16 @@ export default function DashboardPage({ onBack }) {
             { label: 'допустимая норма', color: '#e84342', type: 'dash' },
           ]}
         >
-          <BarChart suppliers={suppliers} getValue={s => s.reactionTime ?? 0} colorVariant="grey" normLine={normReaction} normLabel={`норма ${normReaction}ч`} />
+          <BarChart
+            suppliers={filteredSuppliers}
+            getValue={s => s.reactionTime ?? 0}
+            colorVariant="grey"
+            normLine={normReaction}
+            normLabel={`норма ${normReaction}ч`}
+          />
         </ChartCard>
 
-        <DonutCard segments={donutSegments} totalAmount={totalAmount} />
+        <DonutCard segments={filteredDonutSegments} totalAmount={filteredTotalAmount} />
       </div>
     </div>
   )
